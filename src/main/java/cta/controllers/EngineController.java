@@ -67,7 +67,7 @@ public class EngineController {
 			break;
 		case "selectConsulta":
 			re.selectConsulta(param);
-			//devolver AckKnowledge
+			//devolver AckKnowledge siempre como Response Entity
 			break;
 		default:
 
