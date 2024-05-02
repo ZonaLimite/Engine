@@ -1,0 +1,43 @@
+	textArea.getDocument().addDocumentListener(new DocumentListener(){
+
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				// TODO Auto-generated method stub
+
+				try {
+					String cadena = textArea.getDocument().getText(e.getOffset(),e.getLength());
+					cadenasFiltradas.add(cadena);
+					System.out.println("Insertado:"+cadena);
+		    		if(getCheckListener1().isSelected()) {
+		    			if(cadena.contains(getTextFieldListener1().getText())) {
+		    				StyledDocument sd = getTextPaneListeners().getStyledDocument();
+		    				int posIni = sd.getLength();
+		    				
+		    				try {
+								sd.insertString(posIni, cadena.concat( System.getProperty("line.separator")), new SimpleAttributeSet());
+							} catch (BadLocationException x) {
+								// TODO Auto-generated catch block
+								x.printStackTrace();
+							}
+		    			}
+		    		}
+					
+				} catch (BadLocationException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+    		
+    	});
