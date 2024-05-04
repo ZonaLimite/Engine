@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import cta.Visualizador;
-import cta.remote.RemoteEngine;
+import cta.remote.service.RemoteEngine;
 
 @CrossOrigin(origins = { "http://localhost:4200" })
 @RestController
@@ -22,13 +22,13 @@ public class EngineController {
 	@Autowired
 	private RemoteEngine re;
 
-	@GetMapping("/gui/sistemas")
-	private List<String> allSistemas(@PathVariable String nameSistema) {
-		return null;
+	@GetMapping("/gui/sistemas")//un listado de strings con los nombres de sistema
+	private String[] allSistemas() {
+		return re.getSistemasRegistrados();
 	}
 
-	// Devuelve las consultas registradas para un sistema
-	@GetMapping("/gui/consultas/{sistema}")
+	
+	@GetMapping("/gui/consultas/{sistema}")// Devuelve las consultas registradas para un sistema dado
 	private List<String> consultasBySistema(@PathVariable String nameSistema) {
 		return null;
 	}

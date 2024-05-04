@@ -1,4 +1,4 @@
-package cta.remote;
+package cta.remote.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -23,7 +23,6 @@ public class RemoteEngine {
 		vis.getDesconectar().doClick();
 	}
 	
-
 	public void adjustNumTop(int num) {
 		vis.spinner.setValue(num);
 	}
@@ -41,6 +40,10 @@ public class RemoteEngine {
 	public void selectConsulta(String nameSistemaConsulta) {
 		 vis.getCombo_Consultas().setSelectedItem( vis.getCatalogoConsultas().get(nameSistemaConsulta));
 		 
+	}
+	
+	public String[] getSistemasRegistrados() {
+		return vis.aSistemas;
 	}
 	
 	

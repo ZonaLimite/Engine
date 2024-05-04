@@ -114,9 +114,6 @@ public class Visualizador extends JFrame {
 	/**
 	 * 
 	 */
-	
-	
-
 	private int modoTrabajo = 1; // 1:Consulta; 2:MultiConsulta 3: InputStreamFile
 	private ButtonGroup buttonGroup;
 	private JButton conectar;
