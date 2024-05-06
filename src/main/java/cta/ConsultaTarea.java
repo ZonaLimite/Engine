@@ -1,15 +1,34 @@
 package cta;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.Vector;
 
 import cta.designe.listener.ModelFilter;
 
-//Una consulta es un vector de modulos + filtro y su nombre de consulta
+//Una consulta es un vector de modulos + filtro y su nombre de consulta que contiene el sistema asociado a la misma
+//Una ConsultaTarea es una consulta a la que se añade una maquina y opcionalmente un file para tratamiento ByFile
 public class ConsultaTarea implements Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	Consulta consulta;
 	String numeroMaquina;
+	File nameFileSource;
+
+
+	public File getNameFileSource() {
+		return nameFileSource;
+	}
+
+
+
+	public void setNameFileSource(File nameFileSource) {
+		this.nameFileSource = nameFileSource;
+	}
+
 
 
 	public Consulta getConsulta() {
@@ -46,9 +65,11 @@ public class ConsultaTarea implements Serializable {
 		return consulta.getSistemaConsulta()+":"+numeroMaquina;
 	}
 
-	public ConsultaTarea(Consulta consulta, String numMaquina) {
-	this.consulta = consulta;
-	this.numeroMaquina = numMaquina;
+	public ConsultaTarea(Consulta consulta, String numeroMaquina, File nameFileSource) {
+		super();
+		this.consulta = consulta;
+		this.numeroMaquina = numeroMaquina;
+		this.nameFileSource = nameFileSource;
 	}
 	
 

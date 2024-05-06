@@ -18,8 +18,10 @@ import javax.swing.text.StyledDocument;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import cta.designe.listener.Algoritmos;
@@ -110,7 +112,13 @@ import javax.swing.JFileChooser;
 
 @Component
 public class Visualizador extends JFrame {
-
+	
+	@Autowired
+	private SimpMessagingTemplate webSocket;//Inyeccion dependencia channel websocket
+	
+	@Value("${uri.file.catalogos}")
+	public String catalogos; //un mapeo a la propertie en application properties
+	
 	/**
 	 * 
 	 */
@@ -128,14 +136,9 @@ public class Visualizador extends JFrame {
 	
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
+
 	
 	private ConcurrentHashMap<String,DatagramSocket> socketSistemaRegistry; // sistema-maquina->socket
-	
-	private ConcurrentHashMap<String,DatagramSocket> socketDispatcherRegistry; //sistema-maquina-> socketDispatcher
-	
-	private ConcurrentHashMap<String,DatagramSocket> socketReceiverRegistry; //Receiver-> socketDispatcher
-	
-	private ConcurrentHashMap<String, Dispatcher> dispatcherSistemaRegistry; //sistema-maquina -> dispatcher(Runnable) 
 	
 	private ConcurrentHashMap<String,Integer> flagDisconnectRegistry;// sistema-maquina->flagDisconnect
 	
@@ -148,6 +151,8 @@ public class Visualizador extends JFrame {
 	private ConcurrentHashMap<String, JLabel> numThreadsLabel; //sistema-maquina-> JLabel(num hilos)
 	
 	private ConcurrentHashMap<String, Vector<Receiver>> threadReceiverRegistry; //sistema-maquina-> Vector<Receiver(Runnable)>
+	
+	private ConcurrentHashMap<String, ReceiverByFile> threadReceiverByFileRegistry; //sistema-maquina-> Vector<Receiver(Runnable)>
 	
 
 	
@@ -169,6 +174,7 @@ public class Visualizador extends JFrame {
 	private JCheckBox chckbxTOP2_SCO;
 	private JCheckBox chckbxTOP1_ATHS;
 	private JCheckBox chckbxTOP2_ATHS;
+	public JCheckBox chckbxPublishToWebsocket;
 	
 	private JLabel lblCountThreads_IL_2;
 	private JLabel lblCountThreads_SCO_2;
@@ -189,7 +195,7 @@ public class Visualizador extends JFrame {
 	private JComboBox<String> combo_Tareas;
 	private JComboBox<String> comboSistemas;
 
-	private JList listaTareas;
+	private JList<String> listaTareas;
 	private JLabel labelFiltrosCount;
 	private JLabel labelListenersCount;
 	private JLabel labelModulosCount;
@@ -325,6 +331,18 @@ public class Visualizador extends JFrame {
 	public void setCatalogFilter(String[] catalogFilter, String sistemaConsulta) {
 		this.catalogFiltersRegistry.put(sistemaConsulta, catalogFilter);
 	}
+	
+	public ConcurrentHashMap<String, ReceiverByFile> getThreadReceiverByFileRegistry() {
+		return threadReceiverByFileRegistry;
+	}
+
+	public void setThreadReceiverByFileRegistry(ConcurrentHashMap<String, ReceiverByFile> threadReceiverByFileRegistry) {
+		this.threadReceiverByFileRegistry = threadReceiverByFileRegistry;
+	}
+
+	public ConcurrentHashMap<String, Vector<Receiver>> getThreadReceiverRegistry() {
+		return threadReceiverRegistry;
+	}
 
 	public ArrayBlockingQueue<String> getCadenasFiltradas() {
 		return cadenasFiltradas;
@@ -337,8 +355,6 @@ public class Visualizador extends JFrame {
 	public JTextField getTextFieldListener1() {
 		return textFieldListener1;
 	}
-
-	
 
 	public JTextField getLinkedListCounter() {
 		return linkedListCounter;
@@ -380,6 +396,17 @@ public class Visualizador extends JFrame {
 		return textArea;
 	}
 
+	public String getCatalogos() {
+		return catalogos;
+	}
+
+	public void setCatalogos(String catalogos) {
+		this.catalogos = catalogos;
+	}
+
+
+	
+	
 	/**
 	 * Launch the application.
 	 */
@@ -396,17 +423,8 @@ public class Visualizador extends JFrame {
 			}
 		});
 	}
-	public String getCatalogos() {
-		return catalogos;
-	}
-
-	public void setCatalogos(String catalogos) {
-		this.catalogos = catalogos;
-	}
-
 	
-	@Value("${uri.file.catalogos}")
-	public String catalogos; //un mapeo a la propertie en application properties
+
 	
 	/**
 	 * Create the frame.
@@ -453,8 +471,12 @@ public class Visualizador extends JFrame {
 		// mapa de vinculos led-socket
 		ledSocketRegistry =  new ConcurrentHashMap<String, JCheckBox>(); 
 		
-		//Mapa de threads corriendo		
+		//Mapa de threads Receiver corriendo		
 		threadReceiverRegistry = new ConcurrentHashMap<String,Vector<Receiver>>();
+		
+		//Mapa de threads ReceiverByFile corriendo		
+		threadReceiverByFileRegistry = new ConcurrentHashMap<String,ReceiverByFile>();
+
 		
 		//Mapa de label count thread Sockets
 		numThreadsLabel = new ConcurrentHashMap<String,JLabel>();
@@ -464,9 +486,6 @@ public class Visualizador extends JFrame {
 		
 	}
 	
-	public ConcurrentHashMap<String, Vector<Receiver>> getThreadReceiverRegistry() {
-		return threadReceiverRegistry;
-	}
 
 
 	public void refreshLedsSocketsStatus() {
@@ -901,8 +920,6 @@ public class Visualizador extends JFrame {
 
 		comboFiltrosActivos = new JComboBox();
 
-		JCheckBox chckbxEnablePublish = new JCheckBox("Publish");
-
 		JLabel lblListeners = new JLabel("FILTROS ACTIVOS");
 		lblListeners.setFont(new Font("DejaVu Sans", Font.BOLD, 12));
 
@@ -1018,10 +1035,7 @@ public class Visualizador extends JFrame {
 						.addGroup(gl_panel_3_1.createSequentialGroup()
 							.addGap(22)
 							.addGroup(gl_panel_3_1.createParallelGroup(Alignment.LEADING)
-								.addGroup(gl_panel_3_1.createSequentialGroup()
-									.addComponent(chckbxBufferearConsulta)
-									.addGap(18)
-									.addComponent(chckbxEnablePublish, GroupLayout.PREFERRED_SIZE, 91, GroupLayout.PREFERRED_SIZE))
+								.addComponent(chckbxBufferearConsulta)
 								.addGroup(gl_panel_3_1.createParallelGroup(Alignment.TRAILING, false)
 									.addGroup(gl_panel_3_1.createSequentialGroup()
 										.addComponent(btnNueva_1, GroupLayout.PREFERRED_SIZE, 83, GroupLayout.PREFERRED_SIZE)
@@ -1059,11 +1073,11 @@ public class Visualizador extends JFrame {
 					.addGroup(gl_panel_3_1.createParallelGroup(Alignment.LEADING)
 						.addGroup(gl_panel_3_1.createSequentialGroup()
 							.addGap(10)
-							.addComponent(comboFiltrosActivos, 0, 245, Short.MAX_VALUE))
+							.addComponent(comboFiltrosActivos, 0, 216, Short.MAX_VALUE))
 						.addGroup(gl_panel_3_1.createSequentialGroup()
 							.addGap(10)
 							.addComponent(btnNew)
-							.addPreferredGap(ComponentPlacement.RELATED, 93, Short.MAX_VALUE)
+							.addPreferredGap(ComponentPlacement.RELATED, 64, Short.MAX_VALUE)
 							.addComponent(btnBorrar_2))
 						.addGroup(gl_panel_3_1.createSequentialGroup()
 							.addGap(21)
@@ -1104,9 +1118,7 @@ public class Visualizador extends JFrame {
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_panel_3_1.createParallelGroup(Alignment.LEADING)
 						.addGroup(gl_panel_3_1.createSequentialGroup()
-							.addGroup(gl_panel_3_1.createParallelGroup(Alignment.BASELINE)
-								.addComponent(chckbxBufferearConsulta)
-								.addComponent(chckbxEnablePublish))
+							.addComponent(chckbxBufferearConsulta)
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addComponent(filter, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
 							.addPreferredGap(ComponentPlacement.RELATED)
@@ -1342,7 +1354,9 @@ public class Visualizador extends JFrame {
 		incluir = new JButton("INCLUIR");
 		incluir.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				incluirModelFilterAListeners();
+			
+				String keyModelFilter =  (String) dialogAddModelFilter();
+				refreshComboListeners(keyModelFilter);
 				catalogListener= makeCatalogListeners();
 				comboListenersActivos.setSelectedIndex(comboListenersActivos.getItemCount() - 1);
 				labelListenersCount.setText("(" + comboListenersActivos.getItemCount() + ")");
@@ -1373,88 +1387,92 @@ public class Visualizador extends JFrame {
 				catalogListener = makeCatalogListeners();
 			}
 		});
+		
+		chckbxPublishToWebsocket = new JCheckBox("Publish to webSocket");
+		chckbxPublishToWebsocket.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				sendEventTraces();
+			}
+		});
 		GroupLayout gl_panel_1 = new GroupLayout(panel_1);
-		gl_panel_1.setHorizontalGroup(gl_panel_1.createParallelGroup(Alignment.LEADING).addGroup(gl_panel_1
-				.createSequentialGroup().addContainerGap()
-				.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING).addComponent(lblNewLabel_2)
+		gl_panel_1.setHorizontalGroup(
+			gl_panel_1.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_panel_1.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+						.addComponent(lblNewLabel_2)
 						.addGroup(gl_panel_1.createSequentialGroup()
-								.addGroup(gl_panel_1.createParallelGroup(Alignment.TRAILING, false)
-										.addComponent(btnNewdesconectar, Alignment.LEADING, GroupLayout.DEFAULT_SIZE,
-												GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-										.addComponent(filterById, Alignment.LEADING))
-								.addPreferredGap(ComponentPlacement.RELATED)
-								.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
-										.addComponent(FilterByIdValue, GroupLayout.PREFERRED_SIZE,
-												GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(selectByIdValue, GroupLayout.PREFERRED_SIZE,
-												GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))))
-				.addGap(121)
-				.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
-						.addComponent(comboListenersActivos, GroupLayout.PREFERRED_SIZE, 198,
-								GroupLayout.PREFERRED_SIZE)
-						.addGroup(gl_panel_1.createParallelGroup(Alignment.TRAILING)
-								.addGroup(Alignment.LEADING, gl_panel_1.createSequentialGroup()
-										.addComponent(checkListener1).addPreferredGap(ComponentPlacement.RELATED)
-										.addComponent(lblListenersActivos, GroupLayout.PREFERRED_SIZE, 146,
-												GroupLayout.PREFERRED_SIZE)
-										.addPreferredGap(ComponentPlacement.RELATED).addComponent(labelListenersCount,
-												GroupLayout.PREFERRED_SIZE, 21, GroupLayout.PREFERRED_SIZE))
-								.addGroup(Alignment.LEADING, gl_panel_1.createSequentialGroup()
-										.addComponent(incluir, GroupLayout.PREFERRED_SIZE, 91,
-												GroupLayout.PREFERRED_SIZE)
-										.addGap(18).addComponent(borrar, GroupLayout.PREFERRED_SIZE, 87,
-												GroupLayout.PREFERRED_SIZE))))
-				.addPreferredGap(ComponentPlacement.RELATED, 122, Short.MAX_VALUE)
-				.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING).addGroup(gl_panel_1.createSequentialGroup()
-						.addComponent(textFieldListener1, GroupLayout.PREFERRED_SIZE, 184, GroupLayout.PREFERRED_SIZE)
-						.addPreferredGap(ComponentPlacement.RELATED).addComponent(btnNewButton_2))
-						.addComponent(lblNewLabel_3, GroupLayout.PREFERRED_SIZE, 123, GroupLayout.PREFERRED_SIZE))
-				.addGap(387)));
-		gl_panel_1.setVerticalGroup(gl_panel_1.createParallelGroup(Alignment.TRAILING)
-				.addGroup(gl_panel_1.createSequentialGroup().addGap(12)
-						.addGroup(gl_panel_1
-								.createParallelGroup(Alignment.LEADING)
-								.addGroup(
-										gl_panel_1
-												.createParallelGroup(Alignment.BASELINE).addComponent(lblNewLabel_2)
-												.addComponent(lblListenersActivos, GroupLayout.PREFERRED_SIZE, 15,
-														GroupLayout.PREFERRED_SIZE)
-												.addComponent(labelListenersCount, GroupLayout.PREFERRED_SIZE, 17,
-														GroupLayout.PREFERRED_SIZE))
-								.addComponent(checkListener1))
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addGroup(
-								gl_panel_1.createParallelGroup(Alignment.LEADING)
-										.addGroup(gl_panel_1.createSequentialGroup()
-												.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING, false)
-														.addComponent(FilterByIdValue, GroupLayout.PREFERRED_SIZE,
-																GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-														.addComponent(filterById))
-												.addPreferredGap(ComponentPlacement.RELATED)
-												.addGroup(
-														gl_panel_1.createParallelGroup(Alignment.BASELINE)
-																.addComponent(btnNewdesconectar)
-																.addComponent(selectByIdValue,
-																		GroupLayout.PREFERRED_SIZE,
-																		GroupLayout.DEFAULT_SIZE,
-																		GroupLayout.PREFERRED_SIZE)))
-										.addGroup(gl_panel_1.createSequentialGroup()
-												.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
-														.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE)
-																.addComponent(incluir).addComponent(borrar))
-														.addGroup(gl_panel_1.createSequentialGroup().addGap(11)
-																.addComponent(lblNewLabel_3)))
-												.addPreferredGap(ComponentPlacement.RELATED)
-												.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
-														.addComponent(comboListenersActivos, GroupLayout.PREFERRED_SIZE,
-																GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-														.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE)
-																.addComponent(textFieldListener1,
-																		GroupLayout.PREFERRED_SIZE,
-																		GroupLayout.DEFAULT_SIZE,
-																		GroupLayout.PREFERRED_SIZE)
-																.addComponent(btnNewButton_2)))))
-						.addContainerGap(16, Short.MAX_VALUE)));
+							.addGroup(gl_panel_1.createParallelGroup(Alignment.TRAILING, false)
+								.addComponent(btnNewdesconectar, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(filterById, Alignment.LEADING))
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+								.addComponent(FilterByIdValue, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addComponent(selectByIdValue, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))))
+					.addGap(121)
+					.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_panel_1.createSequentialGroup()
+							.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+								.addComponent(comboListenersActivos, GroupLayout.PREFERRED_SIZE, 198, GroupLayout.PREFERRED_SIZE)
+								.addGroup(gl_panel_1.createSequentialGroup()
+									.addComponent(incluir, GroupLayout.PREFERRED_SIZE, 91, GroupLayout.PREFERRED_SIZE)
+									.addGap(18)
+									.addComponent(borrar, GroupLayout.PREFERRED_SIZE, 87, GroupLayout.PREFERRED_SIZE)))
+							.addGap(4)
+							.addComponent(chckbxPublishToWebsocket)
+							.addPreferredGap(ComponentPlacement.RELATED, 156, Short.MAX_VALUE)
+							.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+								.addGroup(gl_panel_1.createSequentialGroup()
+									.addComponent(textFieldListener1, GroupLayout.PREFERRED_SIZE, 184, GroupLayout.PREFERRED_SIZE)
+									.addPreferredGap(ComponentPlacement.RELATED)
+									.addComponent(btnNewButton_2))
+								.addComponent(lblNewLabel_3, GroupLayout.PREFERRED_SIZE, 123, GroupLayout.PREFERRED_SIZE))
+							.addGap(387))
+						.addGroup(gl_panel_1.createSequentialGroup()
+							.addComponent(checkListener1)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(lblListenersActivos, GroupLayout.PREFERRED_SIZE, 146, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(labelListenersCount, GroupLayout.PREFERRED_SIZE, 21, GroupLayout.PREFERRED_SIZE)
+							.addContainerGap(935, Short.MAX_VALUE))))
+		);
+		gl_panel_1.setVerticalGroup(
+			gl_panel_1.createParallelGroup(Alignment.TRAILING)
+				.addGroup(gl_panel_1.createSequentialGroup()
+					.addGap(12)
+					.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE)
+							.addComponent(lblNewLabel_2)
+							.addComponent(lblListenersActivos, GroupLayout.PREFERRED_SIZE, 15, GroupLayout.PREFERRED_SIZE)
+							.addComponent(labelListenersCount, GroupLayout.PREFERRED_SIZE, 17, GroupLayout.PREFERRED_SIZE))
+						.addComponent(checkListener1))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_panel_1.createSequentialGroup()
+							.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING, false)
+								.addComponent(FilterByIdValue, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addComponent(filterById))
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE)
+								.addComponent(btnNewdesconectar)
+								.addComponent(selectByIdValue, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+						.addGroup(gl_panel_1.createSequentialGroup()
+							.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+								.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE)
+									.addComponent(incluir)
+									.addComponent(borrar)
+									.addComponent(chckbxPublishToWebsocket))
+								.addGroup(gl_panel_1.createSequentialGroup()
+									.addGap(11)
+									.addComponent(lblNewLabel_3)))
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+								.addComponent(comboListenersActivos, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE)
+									.addComponent(textFieldListener1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+									.addComponent(btnNewButton_2)))))
+					.addContainerGap(16, Short.MAX_VALUE))
+		);
 		panel_1.setLayout(gl_panel_1);
 
 		JSplitPane splitPane = new JSplitPane();
@@ -1839,11 +1857,6 @@ public class Visualizador extends JFrame {
 
 	}
 
-	protected String incluirModelFilterAListeners() {
-		String keyModelFilter =  (String) dialogAddModelFilter();
-		refreshComboListeners(keyModelFilter);
-		return keyModelFilter;
-	}
 
 	private void refreshComboListeners(String keyModelFilter) {
 		if(keyModelFilter==null)return;
@@ -2142,21 +2155,21 @@ public class Visualizador extends JFrame {
 			if(threadReceiverRegistry.get(cTarea.getNameSocketSistema())==null) {
 				Vector<Receiver> vThread = new Vector<Receiver>();
 				//No hay que controlar aqui porque es el primero en a�adir
-				Receiver runReceiver = new Receiver(socket, this, cTarea);
+				Receiver runReceiver = new Receiver(socket, this, cTarea, webSocket);
 				Thread threadReceiver = new Thread(runReceiver);
 				threadReceiver.start();
 				//vThread.add(threadReceiver);
 				threadReceiverRegistry.put(cTarea.getNameSocketSistema(), vThread);
-				logger.debug("Inicializando Procesamiento thread de "+ cTarea.getNameSocketSistema());
+				logger.info("Inicializando Procesamiento thread de "+ cTarea.getNameSocketSistema());
 				
 			}else {
 				//Controlo si el vector de Threads tiene mas que el maximo de hilos permitidos por sistema
 				Vector<Receiver> vHilos = threadReceiverRegistry.get(cTarea.getNameSocketSistema());
 				if(vHilos.size() >= maxThreadBySistema) {
-					logger.debug("Ya se ha alcanzado el numero maximo de hilos por receiver...");
+					logger.info("Ya se ha alcanzado el numero maximo de hilos por receiver...");
 					return;
 				}else {
-					Receiver runReceiver = new Receiver(socket, this, cTarea );
+					Receiver runReceiver = new Receiver(socket, this, cTarea , webSocket);
 					Thread threadReceiver = new Thread(runReceiver);
 					threadReceiver.start();
 				}
@@ -2165,6 +2178,24 @@ public class Visualizador extends JFrame {
 		
 	}
 
+	private void instanciarReceiverByFile(ConsultaTarea cTarea) {
+		
+		if(threadReceiverByFileRegistry.get(cTarea.getNameSocketSistema())==null) {
+			
+			//No hay que controlar aqui porque es el primero en a�adir
+			ReceiverByFile receiverByFile = new ReceiverByFile(this, cTarea, webSocket);
+			Thread threadReceiverByFile = new Thread(receiverByFile);
+			threadReceiverByFile.start();
+	
+			threadReceiverByFileRegistry.put(cTarea.getNameSocketSistema(), receiverByFile);
+			logger.info("Inicializando Procesamiento thread de "+ cTarea.getNameSocketSistema());
+			
+		}
+		refreshLedsSocketsStatus();
+	
+	}
+
+	
 	private DatagramSocket getSocketPoll(String nameSocketSistema) {
 		// solo utilizamos un Socket por sistema
 		DatagramSocket datagramSocket=null;
@@ -2186,63 +2217,7 @@ public class Visualizador extends JFrame {
 		return datagramSocket;
 	}
 	
-	private DatagramSocket getSocketDispatcherPoll(String nameSocketSistema) {
-		// solo utilizamos un SocketDispatcher por sistema
-		DatagramSocket datagramSocket=null;
-		if(socketDispatcherRegistry.get(nameSocketSistema)==null){
-			try {
-				datagramSocket = new DatagramSocket();
-				datagramSocket.setSoTimeout(4000);//Si en 4 segundos no hay respuesta raise Exception
-				socketDispatcherRegistry.put(nameSocketSistema, datagramSocket);
-				//this.getFlagDisconnectRegistry().put(nameSocketSistema, 0);
-
-			
-			} catch (SocketException e) {
-				e.printStackTrace();
-			}
-		}else {
-			datagramSocket = socketDispatcherRegistry.get(nameSocketSistema); 
-		}
-		
-		return datagramSocket;
-	}
-	private DatagramSocket getSocketReceiverPoll(Receiver receiver, String nameSistema) {
-		// solo utilizamos un SocketDispatcher por sistema
-		DatagramSocket datagramSocket=null;
-		if(socketDispatcherRegistry.get(nameSistema)==null){
-			try {
-				datagramSocket = new DatagramSocket();
-				datagramSocket.setSoTimeout(4000);//Si en 4 segundos no hay respuesta raise Exception
-				socketDispatcherRegistry.put(nameSistema, datagramSocket);
-				//this.getFlagDisconnectRegistry().put(nameSocketSistema, 0);
-
-			
-			} catch (SocketException e) {
-				e.printStackTrace();
-			}
-		}else {
-			datagramSocket = socketDispatcherRegistry.get(nameSistema); 
-		}
-		
-		return datagramSocket;
-	}
-
 	
-	private Dispatcher getDispatcherPoll(DatagramSocket datagramSocket ,DatagramSocket datagramDispatcher,Visualizador vis, String nameSocketSistema) {
-		
-		Dispatcher dispatcher=null;
-		if(dispatcherSistemaRegistry.get(nameSocketSistema)==null){
-				
-				dispatcher = new Dispatcher(datagramSocket, datagramDispatcher, vis, nameSocketSistema);
-				this.getFlagDisconnectRegistry().put(nameSocketSistema, 0);
-				dispatcherSistemaRegistry.put(nameSocketSistema, dispatcher);
-				
-		}else {
-			dispatcher = dispatcherSistemaRegistry.get(nameSocketSistema); 
-		}
-		
-		return dispatcher;
-	}
 
 	public void connect() {
 		String top =  ""+spinner.getValue();
@@ -2251,7 +2226,7 @@ public class Visualizador extends JFrame {
 		
 		if(consulta==null)return;	
 		
-		ConsultaTarea consultaTarea = new ConsultaTarea(consulta,top) ;
+		ConsultaTarea consultaTarea = new ConsultaTarea(consulta,top,null) ;
 		connect(consultaTarea);
 	}
 	
@@ -3168,45 +3143,20 @@ public class Visualizador extends JFrame {
 		
 	}
 	
+	
+	
 	private void incluirConsultaAListaTareas(String sTarea) {
 		String sConsulta = (String) dialogAddConsulta();
 
 		if (sConsulta == null | combo_Tareas.getSelectedItem()==null)return;
 		
-		JFileChooser file=new JFileChooser();
-		   file.showOpenDialog(this);
-		   /**abrimos el archivo seleccionado*/
-		   File abre=file.getSelectedFile();
-		   //catalogoTareas.get(sTarea).getConsultas().add(consultaTarea)
-
-		/*
-		Consulta consulta = catalogoConsultas.get(sConsulta);
-		ConsultaTarea consultaTarea = new ConsultaTarea(consulta,numeroMaquina);
-		consultaTarea.setNumeroMaquina(numeroMaquina);
-		
-	
-		
-		//Comprobamos si ya existe una consultaTarea con el mismo nombre
-		int indexSelected=addItemAListaConsultasModoConsulta(sTarea, consultaTarea);
-		if(indexSelected != -1) {
-			catalogoTareas.get(sTarea).getConsultas().add(consultaTarea);
-			logger.info("El usuario ha añadido la Consulta para el modo Tareas :" + consultaTarea.nombreConsultaTareaFull());
-		}else {
-			logger.info("Consulta ya existente, no se añade"); 
-		}*/
-		refreshListaTareas(sTarea);
-		
-	}
-	
-	private void incluirConsultaAListaTareas2(String sTarea) {
-		String sConsulta = (String) dialogAddConsulta();
-
-		if (sConsulta == null | combo_Tareas.getSelectedItem()==null)return;
-		
 		String numeroMaquina = JOptionPane.showInputDialog(contentPane, "Indique el numero de Maquina para la consulta", null);
+		JFileChooser fileChoose=new JFileChooser();
+		fileChoose.showOpenDialog(this);
 		
+		File file=fileChoose.getSelectedFile();
 		Consulta consulta = catalogoConsultas.get(sConsulta);
-		ConsultaTarea consultaTarea = new ConsultaTarea(consulta,numeroMaquina);
+		ConsultaTarea consultaTarea = new ConsultaTarea(consulta,numeroMaquina,file);
 		consultaTarea.setNumeroMaquina(numeroMaquina);
 		
 	
@@ -3238,4 +3188,11 @@ public class Visualizador extends JFrame {
 	public ConcurrentHashMap<String,Integer> getFlagDisconnectRegistry() {
 		return this.flagDisconnectRegistry;
 	}
+
+	private void sendEventTraces() {
+		// TODO Auto-generated method stub
+		
+	}
+
+
 }

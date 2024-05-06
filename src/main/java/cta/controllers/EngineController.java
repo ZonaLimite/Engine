@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import cta.Visualizador;
 import cta.remote.service.RemoteEngine;
 
-@CrossOrigin(origins = { "http://localhost:4200" })
+//@CrossOrigin(origins = { "http://192.168.1.5:4200" }) Configurado en Configuracion
 @RestController
 @RequestMapping("/engineTrace")
 public class EngineController {

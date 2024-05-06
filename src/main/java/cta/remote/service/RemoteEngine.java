@@ -1,10 +1,19 @@
 package cta.remote.service;
 
+import java.lang.reflect.Array;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import cta.Consulta;
 import cta.Visualizador;
 import cta.designe.listener.ModelFilter;
+import java.util.Vector;
 
 @Component
 public class RemoteEngine {
@@ -46,7 +55,28 @@ public class RemoteEngine {
 		return vis.aSistemas;
 	}
 	
-	
-	
+	public String[] getModulosRegistrados(String pareEsteSistema) {
+		ConcurrentHashMap<String, Consulta> catConsultas = vis.getCatalogoConsultas();
+		Vector<String> v = new Vector<String>();
+		Set<Entry<String, Consulta>> set = catConsultas.entrySet();
+		
+		Iterator<Entry<String,Consulta>> it = set.iterator();
+		while(it.hasNext()) {
+			Entry<String, Consulta> e = it.next();
+			if(e.getKey().contains(pareEsteSistema+":")){
+				v.add(e.getValue().getNombreConsultaFull());
+			}
+		};
+		return v.toArray(new String[v.size()]);
+	}
+
+	public String[] getListenersRegistrados() {
+		Vector<String> vKeys =new Vector<String>();
+		for ( Enumeration<String> enumKeys = vis.getCatalogoModelFilters().keys();enumKeys.hasMoreElements();) {
+			   vKeys.add(enumKeys.nextElement());
+		}
+		return vKeys.toArray(new String[vKeys.size()]);
+		
+	}
 	
 }

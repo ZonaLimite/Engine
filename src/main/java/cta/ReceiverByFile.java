@@ -4,19 +4,28 @@ import java.net.DatagramPacket;
 
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import javax.swing.JTextArea;
+import javax.swing.JTextPane;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyledDocument;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Component;
+
 import cta.designe.listener.Algoritmos;
 import cta.remote.stompbroker.ModelEventTrace;
 
 
 
-public class Receiver implements Runnable {
+public class ReceiverByFile implements Runnable {
 	
-	private DatagramSocket mySocket = null;
 	private Visualizador vis;
 	private ConsultaTarea cTarea;
 	private SimpMessagingTemplate smt;
@@ -28,34 +37,20 @@ public class Receiver implements Runnable {
 
 	public void run() {
 		//Registrar este receiver para el sistema dado (max. 3 hilos)
-		Vector<Receiver> vThreads= vis.getThreadReceiverRegistry().get(cTarea.getNameSocketSistema());
-		vThreads.add(this);
-		vis.getThreadReceiverRegistry().put(cTarea.getNameSocketSistema(), vThreads);
+		
+		vis.getThreadReceiverByFileRegistry().put(cTarea.getNameSocketSistema(), this);
 		vis.refreshLedsSocketsStatus();
 		
 		String cadenaMensaje;
 		algoritmos = new Algoritmos();
 
-		try {
-			log.info("Tama�o ajustado de buffer DatagramSocket :"+ mySocket.getReceiveBufferSize());
-			log.info("Desde Hilo "+cTarea.getNameSocketSistema()+" trabajando "+ cTarea.getNombreConsultaFull());
-		} catch (SocketException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		int sizeBufferDatagramPacket=4096;
-		int sizeReadBytes=2048;
+
+
 		String[] sArrayFilter = null;
 		do {
-			byte[] RecogerServidor_bytes = new byte[sizeBufferDatagramPacket];
+
 		
 			try {
-				// EsperamoHilo Finalizado"s a recibir un paquete/
-				
-				DatagramPacket servPaquete = new DatagramPacket(RecogerServidor_bytes, sizeReadBytes);
-				mySocket.receive(servPaquete);
-				
-				String sPacket = new String(RecogerServidor_bytes).trim();
 
 				//El visualizador es comun a todos los hilos [singleton] y el Text Area es el mimso para todos
 				//el catalogFilter es construido por cada consulta activa, lo que implica que la 
@@ -67,18 +62,18 @@ public class Receiver implements Runnable {
 				sArrayFilter = vis.getCatalogFiltersRegistry(nameConsulta);
 				
 				// Splitamos el mensaje recibido en lineas
-				// Por cada LinesistemaSocket
-				StringTokenizer st = new StringTokenizer(sPacket, System.getProperty("line.separator") + "|\r");
-				while (st.hasMoreTokens()) {
-					cadenaMensaje = st.nextToken();
+			
+				cadenaMensaje = "";
 
-					// filtrar por catalogo de filtros texto (normalmente por cada linea)
-					if(algoritmos.filterMatch(cadenaMensaje, sArrayFilter, vis.getFilterExclusive().isSelected())) {
-						handlerWriteLine(cadenaMensaje);
-					}
+				// filtrar por catalogo de filtros texto (normalmente por cada linea)
+				if(algoritmos.filterMatch(cadenaMensaje, sArrayFilter, vis.getFilterExclusive().isSelected())) {
+					handlerWriteLine(cadenaMensaje);
 				}
+				
+			
 
 			} catch (Exception e) {
+				String nameConsultaFull = cTarea.getNombreConsultaFull();
 				Vector<String> paraVerMasks = new Vector<String>();
 				for (String mask: vis.getCatalogFiltersRegistry(cTarea.getNombreConsultaFull())) {
 					paraVerMasks.add(mask);
@@ -87,13 +82,12 @@ public class Receiver implements Runnable {
 			}
 		} while ((vis.getFlagDisconnectRegistry()).get(cTarea.getNameSocketSistema()) == 0);
 		//hacemos limpieza en el registro
-		vThreads= vis.getThreadReceiverRegistry().get(cTarea.getNameSocketSistema());
-		vThreads.remove(this);
-		vis.getThreadReceiverRegistry().put(cTarea.getNameSocketSistema(), vThreads);
+		
+		vis.getThreadReceiverByFileRegistry().remove(cTarea.getNameSocketSistema());
 		vis.refreshLedsSocketsStatus();
-		handlerWriteLine("Hilo Finalizado");
-		log.info("Hilo de sistema " + this.cTarea.getNameSocketSistema() + ":" +this+ " finalizado.");
-		mySocket = null;
+		handlerWriteLine("Hilo ByFile Finalizado");
+		log.info("Hilo ByFile de sistema " + this.cTarea.getNameSocketSistema() + ":" +this+ " finalizado.");
+		
 	
 	}
 
@@ -144,8 +138,8 @@ public class Receiver implements Runnable {
 
 
 
-	public Receiver(DatagramSocket socket, Visualizador visualizador, ConsultaTarea cTarea, SimpMessagingTemplate smt ) {
-		this.mySocket = socket;
+	public ReceiverByFile( Visualizador visualizador, ConsultaTarea cTarea, SimpMessagingTemplate smt ) {
+		
 		this.vis = visualizador;
 		this.cTarea = cTarea;
 		this.smt=smt;

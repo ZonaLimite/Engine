@@ -7,10 +7,14 @@ import cta.designe.listener.ModelFilter;
 
 //Una consulta es un vector de modulos + filtro y su nombre de consulta
 public class Consulta implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	String sistemaConsulta;
 	String nameConsulta;
 	Vector<Modulo> modulosActivos;
-	String filtro;// filtro de texto rapido del tipo "cadena&cadenaotra|otracadena&cotraadenaotra"
+	String filtro;// filtro de texto rapido del tipo "cadena&cadenaotra|otracadena&cadenaotra"
 	Vector<ModelFilter> filtrosActivos;
 	//String numeroMaquina;
 
