@@ -122,7 +122,7 @@ public class Visualizador extends JFrame {
 	/**
 	 * 
 	 */
-	private int modoTrabajo = 1; // 1:Consulta; 2:MultiConsulta 3: InputStreamFile
+	private int modoTrabajo = 1; // 1:Consulta; 2:MultiConsulta 3:ByFile
 	private ButtonGroup buttonGroup;
 	private JButton conectar;
 	private JButton desconectar; 
@@ -276,6 +276,10 @@ public class Visualizador extends JFrame {
 
 	public void setCombo_Consultas(JComboBox<Consulta> combo_Consultas) {
 		this.combo_Consultas = combo_Consultas;
+	}
+	
+	public ConcurrentHashMap<String,Integer> getFlagDisconnectRegistry() {
+		return this.flagDisconnectRegistry;
 	}
 
 	
@@ -497,22 +501,32 @@ public class Visualizador extends JFrame {
 			this.numThreadsLabel.get(key).setText("0");
 			//
 		}
-
-		//Poner en verde los activos 
-		for(Enumeration<String> keySockets = this.socketSistemaRegistry.keys(); keySockets.hasMoreElements();) {
-			this.ledSocketRegistry.get(keySockets.nextElement()).setBackground(Color.green);
-		}
-		
-		
-		//Vamos con el contaje de hilos
-		for(Enumeration<String> keyThreads = this.threadReceiverRegistry.keys();keyThreads.hasMoreElements();) {
-			String key = keyThreads.nextElement();
-			Vector<Receiver> vReceiver = threadReceiverRegistry.get(key);
-			this.numThreadsLabel.get(key).setText(""+(vReceiver.size()));
-			if(threadReceiverRegistry.get(key).size() > 1) {
-				logger.warn("Procesamiento paralelo de "+ key);						
+		if(modoTrabajo==1) {
+			//Poner en verde los activos 
+			for(Enumeration<String> keySockets = this.socketSistemaRegistry.keys(); keySockets.hasMoreElements();) {
+				this.ledSocketRegistry.get(keySockets.nextElement()).setBackground(Color.green);
 			}
-
+			//Vamos con el contaje de hilos
+			for(Enumeration<String> keyThreads = this.threadReceiverRegistry.keys();keyThreads.hasMoreElements();) {
+				String key = keyThreads.nextElement();
+				Vector<Receiver> vReceiver = threadReceiverRegistry.get(key);
+				this.numThreadsLabel.get(key).setText(""+(vReceiver.size()));
+				if(threadReceiverRegistry.get(key).size() > 1) {
+					logger.warn("Procesamiento paralelo de "+ key);						
+				}
+			}
+		}
+		if(modoTrabajo==3) {
+			//Poner en verde los activos 
+			for(Enumeration<String> keySReceiverByFile = this.threadReceiverByFileRegistry.keys(); keySReceiverByFile.hasMoreElements();) {
+				this.ledSocketRegistry.get(keySReceiverByFile.nextElement()).setBackground(Color.green);
+			}
+			//Vamos con el contaje de hilos
+		
+			for(Enumeration<String> keyThreads = this.threadReceiverByFileRegistry.keys();keyThreads.hasMoreElements();) {
+				String key = keyThreads.nextElement();
+				this.numThreadsLabel.get(key).setText(""+1);
+			}
 		}
 	
 	}
@@ -681,10 +695,21 @@ public class Visualizador extends JFrame {
 		});
 		btnNewTarea.setFont(new Font("Dialog", Font.PLAIN, 12));
 		
-		JButton btnGuardarTarea = new JButton("Guardar");
+		JButton btnGuardarTarea = new JButton("Ejecutar");
+		btnGuardarTarea.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				ejecutarListaTareas();
+			}
+
+		});
 		btnGuardarTarea.setFont(new Font("Dialog", Font.PLAIN, 12));
 		
 		rdbtnModo2 = new JRadioButton("MODO FILEINPUT");
+		rdbtnModo2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				tratarCambioModos();
+			}
+		});
 		rdbtnModo2.setFont(new Font("Dialog", Font.BOLD, 12));
 		buttonGroup.add(rdbtnModo2);
 
@@ -1005,23 +1030,12 @@ public class Visualizador extends JFrame {
 				});
 		
 		rdbtnModo1 = new JRadioButton("MODO CONSULTA");
-		rdbtnModo1.setSelected(true);
-		rdbtnModo1.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				JRadioButton jrb = (JRadioButton) e.getSource();
-				if(jrb.isSelected()) {
-					modoTrabajo=1;
-					Consulta virtualConsulta = new Consulta();
-					virtualConsulta.setSistemaConsulta((String) comboSistemas.getSelectedItem());
-					refreshComboConsultas(virtualConsulta);// No nos situamos sobre ningun item en particular al init
-
-				}else {
-					modoTrabajo=0;
-					
-				}
-
+		rdbtnModo1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				tratarCambioModos();
 			}
 		});
+		rdbtnModo1.setSelected(true);
 		
 		rdbtnModo1.setFont(new Font("Dialog", Font.BOLD, 12));
 		buttonGroup.add(rdbtnModo1);
@@ -1389,11 +1403,7 @@ public class Visualizador extends JFrame {
 		});
 		
 		chckbxPublishToWebsocket = new JCheckBox("Publish to webSocket");
-		chckbxPublishToWebsocket.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				sendEventTraces();
-			}
-		});
+		
 		GroupLayout gl_panel_1 = new GroupLayout(panel_1);
 		gl_panel_1.setHorizontalGroup(
 			gl_panel_1.createParallelGroup(Alignment.LEADING)
@@ -2181,8 +2191,7 @@ public class Visualizador extends JFrame {
 	private void instanciarReceiverByFile(ConsultaTarea cTarea) {
 		
 		if(threadReceiverByFileRegistry.get(cTarea.getNameSocketSistema())==null) {
-			
-			//No hay que controlar aqui porque es el primero en a�adir
+
 			ReceiverByFile receiverByFile = new ReceiverByFile(this, cTarea, webSocket);
 			Thread threadReceiverByFile = new Thread(receiverByFile);
 			threadReceiverByFile.start();
@@ -2227,15 +2236,17 @@ public class Visualizador extends JFrame {
 		if(consulta==null)return;	
 		
 		ConsultaTarea consultaTarea = new ConsultaTarea(consulta,top,null) ;
-		connect(consultaTarea);
+		connectMixto(consultaTarea);
 	}
 	
-	public void connect(ConsultaTarea cTarea) {
+	public void connectMixto(ConsultaTarea cTarea) {
 			
 		if(this.modoTrabajo==3) {
-			
+			this.getFlagDisconnectRegistry().put(cTarea.getNameSocketSistema(), 0);
+			this.instanciarReceiverByFile(cTarea);
 		}
-		instanciarReceiver(conectarSocket(cTarea),cTarea);
+		
+		if(modoTrabajo==1)instanciarReceiver(conectarSocket(cTarea),cTarea);
 			
 	}
 
@@ -2373,6 +2384,12 @@ public class Visualizador extends JFrame {
 				//Lllamamos recursivamente a este metodo
 				disconnectManual(keysSockets.nextElement());
 			}
+			for(Enumeration<String> keysReceiverByFile = threadReceiverByFileRegistry.keys();keysReceiverByFile.hasMoreElements();) {
+				//Lllamamos recursivamente a este metodo
+				disconnectManual(keysReceiverByFile.nextElement());
+			}
+
+			
 		}else {
 			//Ajustar el flag de control final de hilo para este sistema 
 			this.getFlagDisconnectRegistry().put(sistema,1);
@@ -2653,7 +2670,7 @@ public class Visualizador extends JFrame {
 		int index = 0;
 		int indexComp = 0;
 		combo_Consultas.removeAllItems();
-		String item;
+	
 		for (Enumeration<String> enumKeysConsultas = catalogoConsultas.keys(); enumKeysConsultas.hasMoreElements();) {
 		
 			Consulta consulta = catalogoConsultas.get(enumKeysConsultas.nextElement());
@@ -3159,8 +3176,6 @@ public class Visualizador extends JFrame {
 		ConsultaTarea consultaTarea = new ConsultaTarea(consulta,numeroMaquina,file);
 		consultaTarea.setNumeroMaquina(numeroMaquina);
 		
-	
-		
 		//Comprobamos si ya existe una consultaTarea con el mismo nombre
 		int indexSelected = addItemAListaConsultasModoConsulta(sTarea, consultaTarea);
 		if(indexSelected != -1) {
@@ -3185,14 +3200,33 @@ public class Visualizador extends JFrame {
 		refreshListaTareas(sTarea);
 	}
 
-	public ConcurrentHashMap<String,Integer> getFlagDisconnectRegistry() {
-		return this.flagDisconnectRegistry;
+	private void tratarCambioModos() {
+		
+		if(rdbtnModo1.isSelected()) {
+			modoTrabajo=1;
+			Consulta virtualConsulta = new Consulta();
+			virtualConsulta.setSistemaConsulta((String) comboSistemas.getSelectedItem());
+			refreshComboConsultas(virtualConsulta);// No nos situamos sobre ningun item en particular al init
+		}
+		if(rdbtnModo2.isSelected())modoTrabajo=3;
+
 	}
 
-	private void sendEventTraces() {
-		// TODO Auto-generated method stub
+	
+	private void ejecutarListaTareas() {
+		if(modoTrabajo==3) {
+			Tarea tarea = catalogoTareas.get(combo_Tareas.getSelectedItem());
+			for (ConsultaTarea ct : tarea.consultas ) {
+				String keyConsulta = ct.getConsulta().getNombreConsultaFull();
+				catalogFiltersRegistry.put(keyConsulta, makeCatalogFilter(ct.getConsulta()));
+				logger.info("Actualizado catalogo de filtros para la consulta:"+keyConsulta);
+
+				connectMixto(ct);
+			}
+		}
 		
 	}
 
+	
 
 }

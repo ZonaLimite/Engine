@@ -1,5 +1,10 @@
 package cta;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.DatagramPacket;
 
 import java.net.DatagramSocket;
@@ -32,7 +37,7 @@ public class ReceiverByFile implements Runnable {
 	
 
 	Algoritmos algoritmos;
-	Logger log = Logger.getLogger("Receiver");
+	Logger log = Logger.getLogger("ReceiverByFile");
 
 
 	public void run() {
@@ -44,51 +49,71 @@ public class ReceiverByFile implements Runnable {
 		String cadenaMensaje;
 		algoritmos = new Algoritmos();
 
-
-
-		String[] sArrayFilter = null;
-		do {
-
+		String nameConsulta = cTarea.getNombreConsultaFull();
 		
-			try {
+		
+		FileReader fr = null;
+		BufferedReader br = null;
+		
+		try {
 
-				//El visualizador es comun a todos los hilos [singleton] y el Text Area es el mimso para todos
-				//el catalogFilter es construido por cada consulta activa, lo que implica que la 
-				//construccion del catalog Filter debe elaborarse en base a todas las consultas activas y/o modo
-
-
-				//sArrayFilter = vis.getCatalogFilter(sistemaSocket);
-				String nameConsulta = cTarea.getNombreConsultaFull();
-				sArrayFilter = vis.getCatalogFiltersRegistry(nameConsulta);
-				
-				// Splitamos el mensaje recibido en lineas
+			fr = new FileReader(cTarea.getNameFileSource());
+			br = new  BufferedReader(fr);
+			String[] sArrayFilter = null;
 			
-				cadenaMensaje = "";
-
-				// filtrar por catalogo de filtros texto (normalmente por cada linea)
-				if(algoritmos.filterMatch(cadenaMensaje, sArrayFilter, vis.getFilterExclusive().isSelected())) {
-					handlerWriteLine(cadenaMensaje);
-				}
+			do {
 				
-			
-
-			} catch (Exception e) {
-				String nameConsultaFull = cTarea.getNombreConsultaFull();
-				Vector<String> paraVerMasks = new Vector<String>();
-				for (String mask: vis.getCatalogFiltersRegistry(cTarea.getNombreConsultaFull())) {
-					paraVerMasks.add(mask);
-				}
-				System.err.println("Hilo "+ cTarea.nombreConsultaTareaFull() +" "+this +" trabajando Mascaras :"+paraVerMasks+ " "+ e.getMessage());
-			}
-		} while ((vis.getFlagDisconnectRegistry()).get(cTarea.getNameSocketSistema()) == 0);
-		//hacemos limpieza en el registro
-		
-		vis.getThreadReceiverByFileRegistry().remove(cTarea.getNameSocketSistema());
-		vis.refreshLedsSocketsStatus();
-		handlerWriteLine("Hilo ByFile Finalizado");
-		log.info("Hilo ByFile de sistema " + this.cTarea.getNameSocketSistema() + ":" +this+ " finalizado.");
-		
+				
+				try {
+					//El visualizador es comun a todos los hilos [singleton] y el Text Area es el mimso para todos
+					//el catalogFilter es construido por cada consulta activa, lo que implica que la 
+					//construccion del catalog Filter debe elaborarse en base a todas las consultas activas y/o modo
 	
+					// filtrar por catalogo de filtros texto (normalmente por cada linea)
+					sArrayFilter = vis.getCatalogFiltersRegistry(nameConsulta);
+					Thread.sleep(500);
+					cadenaMensaje = br.readLine();
+	
+	
+					if(algoritmos.filterMatch(cadenaMensaje, sArrayFilter, vis.getFilterExclusive().isSelected())) {
+						handlerWriteLine(cadenaMensaje);
+					}
+					
+				
+	
+				} catch (Exception e) {
+					String nameConsultaFull = cTarea.getNombreConsultaFull();
+					Vector<String> paraVerMasks = new Vector<String>();
+					for (String mask: vis.getCatalogFiltersRegistry(nameConsultaFull)) {
+						paraVerMasks.add(mask);
+					}
+					System.err.println("Hilo "+ cTarea.nombreConsultaTareaFull() +" "+this +" trabajando Mascaras :"+paraVerMasks+ " "+ e.getMessage());
+				}
+				cadenaMensaje=br.readLine();
+			
+			} while ((vis.getFlagDisconnectRegistry()).get(cTarea.getNameSocketSistema()) == 0 |
+				cadenaMensaje==null	);
+		
+		} catch (IOException e) {
+			System.out.println("Problema al tratar fichero :" + cTarea.getNameFileSource());
+			System.out.println(e.getMessage());
+		}finally {
+			//hacemos limpieza en el registro
+			vis.getThreadReceiverByFileRegistry().remove(cTarea.getNameSocketSistema());
+			vis.refreshLedsSocketsStatus();
+			handlerWriteLine("Hilo ByFile Finalizado");
+			log.info("Hilo ByFile de sistema " + this.cTarea.getNameSocketSistema() + ":" +this+ " finalizado.");
+			
+			try {
+				br.close();
+				fr.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+		
 	}
 
 	public void handlerWriteLine(String cadena) {
@@ -129,14 +154,12 @@ public class ReceiverByFile implements Runnable {
 
 		// Configuracion 4
 		// Dispatching evento
-		if(vis.chckbxPublishToWebsocket.isSelected())
+		if(vis.chckbxPublishToWebsocket.isSelected()) {
 			smt.convertAndSend("/channel/traces", new ModelEventTrace("eventTrace",cadena));
-			System.out.println("Enviado evento");
-		}	
-
-	
-
-
+			System.out.println("Enviado file evento");
+		}
+			
+	}	
 
 	public ReceiverByFile( Visualizador visualizador, ConsultaTarea cTarea, SimpMessagingTemplate smt ) {
 		
