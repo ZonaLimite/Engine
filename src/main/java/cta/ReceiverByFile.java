@@ -71,7 +71,7 @@ public class ReceiverByFile implements Runnable {
 	
 					// filtrar por catalogo de filtros texto (normalmente por cada linea)
 					sArrayFilter = vis.getCatalogFiltersRegistry(nameConsulta);
-					Thread.sleep(500);
+					Thread.sleep(10);
 					cadenaMensaje = br.readLine();
 	
 	
@@ -119,7 +119,7 @@ public class ReceiverByFile implements Runnable {
 	public void handlerWriteLine(String cadena) {
 		
 		//A�adimos identificador de sistema origen a la cadena
-		cadena = cTarea.getNameSocketSistema().concat(cadena);
+		cadena = cTarea.getNameSocketSistema().concat(" "+cadena);
 
 		// Configuracion 1		
 		// Solo Imprimimos el paquete recibido a caja visualizador(opcionalmente)
@@ -155,8 +155,12 @@ public class ReceiverByFile implements Runnable {
 		// Configuracion 4
 		// Dispatching evento
 		if(vis.chckbxPublishToWebsocket.isSelected()) {
-			smt.convertAndSend("/channel/traces", new ModelEventTrace("eventTrace",cadena));
-			System.out.println("Enviado file evento");
+			if (algoritmos.filterMatch(cadena,vis.getCatalogListener(), true)) {
+				smt.convertAndSend("/channel/traces", new ModelEventTrace("eventTrace",cadena));
+			}
+			
+
+			
 		}
 			
 	}	

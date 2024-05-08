@@ -83,7 +83,7 @@ public class Receiver implements Runnable {
 				for (String mask: vis.getCatalogFiltersRegistry(cTarea.getNombreConsultaFull())) {
 					paraVerMasks.add(mask);
 				}
-				System.err.println("Hilo "+ cTarea.nombreConsultaTareaFull() +" "+this +" trabajando Mascaras :"+paraVerMasks+ " "+ e.getMessage());
+				System.err.println("Hilo "+ cTarea.nombreConsultaTareaFull() +" "+this +" trabajando Mascaras "+cTarea.getNombreConsultaFull()+paraVerMasks+ " "+ e.getMessage());
 			}
 		} while ((vis.getFlagDisconnectRegistry()).get(cTarea.getNameSocketSistema()) == 0);
 		//hacemos limpieza en el registro
@@ -100,7 +100,7 @@ public class Receiver implements Runnable {
 	public void handlerWriteLine(String cadena) {
 		
 		//A�adimos identificador de sistema origen a la cadena
-		cadena = cTarea.getNameSocketSistema().concat(cadena);
+		cadena = cTarea.getNameSocketSistema().concat(" "+cadena);
 
 		// Configuracion 1		
 		// Solo Imprimimos el paquete recibido a caja visualizador(opcionalmente)

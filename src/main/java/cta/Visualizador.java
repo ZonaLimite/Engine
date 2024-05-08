@@ -30,6 +30,8 @@ import cta.designe.listener.ModelFilter;
 import cta.designe.listener.Splited;
 //import cta.designe.listener.TableListenerModel;
 import cta.designe.listener.TableListenerModel;
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
 
 import javax.swing.ComboBoxModel;
 import javax.swing.GroupLayout;
@@ -111,7 +113,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JFileChooser;
 
 @Component
-public class Visualizador extends JFrame {
+public class Visualizador extends JFrame implements ServletContextListener {
 	
 	@Autowired
 	private SimpMessagingTemplate webSocket;//Inyeccion dependencia channel websocket
@@ -122,7 +124,7 @@ public class Visualizador extends JFrame {
 	/**
 	 * 
 	 */
-	private int modoTrabajo = 1; // 1:Consulta; 2:MultiConsulta 3:ByFile
+	private int modoTrabajo = 1; // 1:Consulta; 2:MultiConsulta 3:FileInput
 	private ButtonGroup buttonGroup;
 	private JButton conectar;
 	private JButton desconectar; 
@@ -158,7 +160,7 @@ public class Visualizador extends JFrame {
 	
 	//private ConcurrentHashMap<String>
 	
-	private int maxThreadBySistema = 3;
+	private int maxThreadBySistema = 1;
 	
 	//private String[] catalogFilter = { "" };
 	private String[] catalogListener = { "" };
@@ -203,6 +205,7 @@ public class Visualizador extends JFrame {
 	public JTextArea getTextAreaHandlers() {
 		return textAreaHandlers;
 	}
+	public JButton btnIncluirListenerRapido;
 
 	private JCheckBox checkListener1;
 	private JTextField textFieldListener1;
@@ -1395,8 +1398,8 @@ public class Visualizador extends JFrame {
 
 		JLabel lblNewLabel_3 = new JLabel("Listener rapido");
 
-		JButton btnNewButton_2 = new JButton("Incluir");
-		btnNewButton_2.addActionListener(new ActionListener() {
+		btnIncluirListenerRapido = new JButton("Incluir");
+		btnIncluirListenerRapido.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				catalogListener = makeCatalogListeners();
 			}
@@ -1435,7 +1438,7 @@ public class Visualizador extends JFrame {
 								.addGroup(gl_panel_1.createSequentialGroup()
 									.addComponent(textFieldListener1, GroupLayout.PREFERRED_SIZE, 184, GroupLayout.PREFERRED_SIZE)
 									.addPreferredGap(ComponentPlacement.RELATED)
-									.addComponent(btnNewButton_2))
+									.addComponent(btnIncluirListenerRapido))
 								.addComponent(lblNewLabel_3, GroupLayout.PREFERRED_SIZE, 123, GroupLayout.PREFERRED_SIZE))
 							.addGap(387))
 						.addGroup(gl_panel_1.createSequentialGroup()
@@ -1480,7 +1483,7 @@ public class Visualizador extends JFrame {
 								.addComponent(comboListenersActivos, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE)
 									.addComponent(textFieldListener1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-									.addComponent(btnNewButton_2)))))
+									.addComponent(btnIncluirListenerRapido)))))
 					.addContainerGap(16, Short.MAX_VALUE))
 		);
 		panel_1.setLayout(gl_panel_1);
@@ -3226,7 +3229,18 @@ public class Visualizador extends JFrame {
 		}
 		
 	}
+	 @Override
+	    public void contextInitialized(
+	        ServletContextEvent sce) {
+	    	System.out.println("Contexto WebServlet inicializado");// eso es
+	    }
 
+	    @Override
+	    public void contextDestroyed(
+	        ServletContextEvent sce) {
+	    	System.out.println("Contexto WebServlet destroyed");	
+	    	System.exit(0);// Here - what you want to do that context shutdown    
+	   }
 	
 
 }

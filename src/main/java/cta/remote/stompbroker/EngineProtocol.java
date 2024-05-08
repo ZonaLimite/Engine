@@ -84,15 +84,35 @@ public class EngineProtocol {
 			//webSocket.convertAndSend("/chat/control/" + userId, rd);
 			break;	
 		case "conectar":
+			//accion sobre engine
 			re.bConectar();
-			// pendiente remitir ackknowlegde
+			//callback 
+			rd = new ModelResultData();
+			rd.tipoResult="ackConectar";
+			rd.data = new String[1];
+			this.enviarDirecto(rd);
+
 			break;
 
 		case "desconectar":
+			//accion sobre engine
 			re.bDesconectar();
-			// pendiente remitir ackknowlegde
+			//callback 
+			rd = new ModelResultData();
+			rd.tipoResult="ackDesconectar";
+			rd.data = new String[1];
+			this.enviarDirecto(rd);
 			break;
-
+		
+		case "incluirListenerRapido":
+			//accion sobre engine
+			re.setTextListenerRapido(comando.data[0]);
+			break;	
+			
+		case "doClickListenerrapido":	
+			re.doClickButtonListenerRapido();
+	
+			break;
 		case "adjustnumtop":
 			re.adjustNumTop(Integer.parseInt(comando.data[0]));
 			// pendiente remitir ackknowlegde
@@ -114,6 +134,13 @@ public class EngineProtocol {
 		}	
 		return rd;
 	}
+	
+	public void enviarDirecto(ModelResultData mrd) {
+		webSocket.convertAndSend("/channel/control", mrd);	
+		System.out.println("Tratando de enviar a cliente:"+mrd);
+	}
+	
+	
 	@MessageMapping("/mensaje")
 	@SendTo("/channel/mensaje")
 	public ModelMensaje recibeMensaje(ModelMensaje mensaje) {
@@ -136,8 +163,5 @@ public class EngineProtocol {
 	}
 	
 	
-	public void enviarDirecto(ModelResultData mrd) {
-		webSocket.convertAndSend("/channel/control", mrd);	
-		System.out.println("Tratando de enviar a cliente:"+mrd);
-	}
+	
 }

@@ -7,6 +7,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.swing.JButton;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -78,5 +80,15 @@ public class RemoteEngine {
 		return vKeys.toArray(new String[vKeys.size()]);
 		
 	}
+	public void setTextListenerRapido(String text) {
+		vis.getTextFieldListener1().setText(text);
+		
+	}
+	
+	public void doClickButtonListenerRapido() {
+		vis.btnIncluirListenerRapido.doClick();
+
+	}
+	
 	
 }
