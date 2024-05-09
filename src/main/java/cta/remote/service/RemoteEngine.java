@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.swing.ComboBoxModel;
 import javax.swing.JButton;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,6 +81,13 @@ public class RemoteEngine {
 		return vKeys.toArray(new String[vKeys.size()]);
 		
 	}
+	
+	public String[] getListenersActivos() {
+		return vis.getListenersActivos();
+		
+	}
+
+	
 	public void setTextListenerRapido(String text) {
 		vis.getTextFieldListener1().setText(text);
 		

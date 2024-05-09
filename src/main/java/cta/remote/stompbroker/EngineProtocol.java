@@ -4,11 +4,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
+import javax.swing.ComboBoxModel;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+
+import cta.designe.listener.ModelFilter;
 import cta.remote.service.RemoteEngine;
 
 @Controller
@@ -29,7 +33,7 @@ public class EngineProtocol {
 		
 		/*String tipoResult;
 		String[] data;*/
-		System.out.println("Comando recibido"+ comando.getTipoResult());
+		System.out.println("Comando recibido :"+ comando.getTipoResult() +"-->"+( comando.data.length==0?"":comando.data[0]));
 		switch (comando.tipoResult) {
 		
 		case "maquinas":
@@ -74,6 +78,17 @@ public class EngineProtocol {
 			this.enviarDirecto(rd);
 			break;
 			
+		case "listenersActivos":	
+			//accion sobre engine
+
+			//callback 
+			rd = new ModelResultData();
+			rd.tipoResult="listenersActivos";
+			rd.data = re.getListenersActivos();
+			//webSocket.convertAndSend("/chat/control/" + userId, rd);			
+			this.enviarDirecto(rd);
+			break;
+
 		case "selectSistema":
 			//accion sobre engine
 			re.SelectSistema(comando.data[0]);
@@ -133,6 +148,7 @@ public class EngineProtocol {
 			break;
 		}	
 		return rd;
+		
 	}
 	
 	public void enviarDirecto(ModelResultData mrd) {

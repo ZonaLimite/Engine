@@ -30,6 +30,7 @@ import cta.designe.listener.ModelFilter;
 import cta.designe.listener.Splited;
 //import cta.designe.listener.TableListenerModel;
 import cta.designe.listener.TableListenerModel;
+import cta.remote.stompbroker.ModelResultData;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 
@@ -248,7 +249,23 @@ public class Visualizador extends JFrame implements ServletContextListener {
 	// Definicion e la tabla de Events
 	private JTable tableModelFilter;
 
+	public JComboBox<ModelFilter> getComboListenersActivos() {
+		return comboListenersActivos;
+	}
+
+	public void setTextFieldListener1(JTextField textFieldListener1) {
+		this.textFieldListener1 = textFieldListener1;
+	}
+	public JTextField getTextFieldListener1() {
+		return textFieldListener1;
+	}
+
 	
+	public void setComboListenersActivos(JComboBox<ModelFilter> comboListenersActivos) {
+		this.comboListenersActivos = comboListenersActivos;
+	}
+
+
 	public ConcurrentHashMap<String, Consulta> getCatalogoConsultas() {
 		return catalogoConsultas;
 	}
@@ -359,10 +376,6 @@ public class Visualizador extends JFrame implements ServletContextListener {
 		return checkListener1;
 	}
 
-	public JTextField getTextFieldListener1() {
-		return textFieldListener1;
-	}
-
 	public JTextField getLinkedListCounter() {
 		return linkedListCounter;
 	}
@@ -446,7 +459,7 @@ public class Visualizador extends JFrame implements ServletContextListener {
 		this.initStructures();
 		//Actualizat info conexion sistemas
 		this.initInfoConexiones("Madrid");
-		System.out.println("Ejecutado constructor");
+		System.out.println("Visualizador arrancando ...");
 
 		
 		/*Vector vCentros = new Vector();
@@ -1377,6 +1390,7 @@ public class Visualizador extends JFrame implements ServletContextListener {
 				catalogListener= makeCatalogListeners();
 				comboListenersActivos.setSelectedIndex(comboListenersActivos.getItemCount() - 1);
 				labelListenersCount.setText("(" + comboListenersActivos.getItemCount() + ")");
+				
 			}
 		});
 
@@ -1384,7 +1398,6 @@ public class Visualizador extends JFrame implements ServletContextListener {
 		borrar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				borrarModelFilterDeListener((ModelFilter) comboListenersActivos.getSelectedItem());
-
 			}
 		});
 
@@ -1401,7 +1414,14 @@ public class Visualizador extends JFrame implements ServletContextListener {
 		btnIncluirListenerRapido = new JButton("Incluir");
 		btnIncluirListenerRapido.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				
 				catalogListener = makeCatalogListeners();
+				ModelResultData mdr = new ModelResultData();
+				mdr.setTipoResult("listenerRapido");
+				String[] textListener = new String[1];
+				textListener[0]= getTextFieldListener1().getText();
+				mdr.setData(textListener);
+				enviarDirecto(mdr);
 			}
 		});
 		
@@ -1877,6 +1897,12 @@ public class Visualizador extends JFrame implements ServletContextListener {
 		if (modelFilter == null)return;
 		logger.info("El usuario ha elegido el Model Filter :" + modelFilter);
 		addItemComboListenersActivos(modelFilter);
+		ModelResultData mrd = new ModelResultData();
+
+		//Avisamos al cliente web de los cambios
+		mrd.setTipoResult("listenersActivos");
+		mrd.setData(this.getListenersActivos());
+		this.enviarDirecto(mrd);
 
 		
 	}
@@ -1904,6 +1930,13 @@ public class Visualizador extends JFrame implements ServletContextListener {
 		comboListenersActivos.setSelectedIndex(comboListenersActivos.getItemCount() - 1);
 		labelListenersCount.setText("(" + comboListenersActivos.getItemCount() + ")");
 
+		//Avisamos al cliente web de los cambios
+		ModelResultData mrd = new ModelResultData();
+		mrd.setTipoResult("listenersActivos");
+		mrd.setData(this.getListenersActivos());
+		this.enviarDirecto(mrd);
+
+
 	}
 
 	protected int addItemComboModelFilterActivos(String sModelFilter) {
@@ -1924,7 +1957,7 @@ public class Visualizador extends JFrame implements ServletContextListener {
 	protected void addItemComboListenersActivos(ModelFilter modelFilter) {
 		// Si no esta ya incluido , se añade
 
-		if (comboListenersActivos.getItemCount() > 0) {
+		if (comboListenersActivos.getItemCount() > 0) {//Evitamos un añadido duplicado
 			for (int i = 0; i < comboListenersActivos.getItemCount(); i++) {
 				if (comboListenersActivos.getItemAt(i).getNameListener().equals(modelFilter.getNameListener())) {
 					return;
@@ -1932,6 +1965,7 @@ public class Visualizador extends JFrame implements ServletContextListener {
 			}
 		}
 		comboListenersActivos.addItem(modelFilter);
+		
 	}
 	
 	protected int addItemAListaConsultasModoConsulta(String sTarea,ConsultaTarea newConsulta) {
@@ -3163,6 +3197,17 @@ public class Visualizador extends JFrame implements ServletContextListener {
 		
 	}
 	
+	public String[] getListenersActivos() {
+		Vector<String> vKeys =new Vector<String>();
+		ComboBoxModel<ModelFilter> cbm = this.getComboListenersActivos().getModel();
+		
+		for ( int i=0; i < cbm.getSize();i++) {
+			vKeys.add(cbm.getElementAt(i).getNameListener());
+		}
+		return vKeys.toArray(new String[vKeys.size()]);
+	}
+
+	
 	
 	
 	private void incluirConsultaAListaTareas(String sTarea) {
@@ -3229,18 +3274,26 @@ public class Visualizador extends JFrame implements ServletContextListener {
 		}
 		
 	}
-	 @Override
-	    public void contextInitialized(
-	        ServletContextEvent sce) {
-	    	System.out.println("Contexto WebServlet inicializado");// eso es
-	    }
+	
+	public void enviarDirecto(ModelResultData mrd) {
+		webSocket.convertAndSend("/channel/control", mrd);	
+		System.out.println("Tratando de enviar a cliente:"+mrd);
+	}
 
-	    @Override
-	    public void contextDestroyed(
-	        ServletContextEvent sce) {
-	    	System.out.println("Contexto WebServlet destroyed");	
-	    	System.exit(0);// Here - what you want to do that context shutdown    
-	   }
+	
+	
+ @Override
+    public void contextInitialized(
+        ServletContextEvent sce) {
+    	System.out.println("Contexto WebServlet inicializado");// eso es
+    }
+
+    @Override
+    public void contextDestroyed(
+        ServletContextEvent sce) {
+    	System.out.println("Contexto WebServlet destroyed");	
+    	System.exit(0);// Here - what you want to do that context shutdown    
+   }
 	
 
 }
