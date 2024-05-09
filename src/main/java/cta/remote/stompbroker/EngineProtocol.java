@@ -63,7 +63,6 @@ public class EngineProtocol {
 			rd = new ModelResultData();
 			rd.tipoResult="modulos";
 			rd.data = re.getModulosRegistrados(comando.data[0]);
-			//webSocket.convertAndSend("/chat/control/" + userId, rd);			
 			this.enviarDirecto(rd);
 			break;
 
@@ -74,7 +73,6 @@ public class EngineProtocol {
 			rd = new ModelResultData();
 			rd.tipoResult="listeners";
 			rd.data = re.getListenersRegistrados();
-			//webSocket.convertAndSend("/chat/control/" + userId, rd);			
 			this.enviarDirecto(rd);
 			break;
 			
@@ -85,7 +83,6 @@ public class EngineProtocol {
 			rd = new ModelResultData();
 			rd.tipoResult="listenersActivos";
 			rd.data = re.getListenersActivos();
-			//webSocket.convertAndSend("/chat/control/" + userId, rd);			
 			this.enviarDirecto(rd);
 			break;
 
@@ -96,7 +93,6 @@ public class EngineProtocol {
 			rd = new ModelResultData();
 			rd.tipoResult="sistemas";
 			rd.data = re.getSistemasRegistrados();
-			//webSocket.convertAndSend("/chat/control/" + userId, rd);
 			break;	
 		case "conectar":
 			//accion sobre engine

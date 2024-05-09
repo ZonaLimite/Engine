@@ -1724,7 +1724,18 @@ public class Visualizador extends JFrame implements ServletContextListener {
 				guardarConsultaActual("nose usa",(Consulta) combo_Consultas.getSelectedItem());
 
 				catalogListener = makeCatalogListeners();
-				
+
+				//Enviar actualizacion del nuevo model filter a interface cliente
+				Vector<String> vKeys =new Vector<String>();
+				for ( Enumeration<String> enumKeys = getCatalogoModelFilters().keys();enumKeys.hasMoreElements();) {
+					   vKeys.add(enumKeys.nextElement());
+				}
+				String[] listeners = vKeys.toArray(new String[vKeys.size()]);
+
+				ModelResultData mdr = new ModelResultData();
+				mdr.setTipoResult("listeners");
+				mdr.setData(listeners);
+				enviarDirecto(mdr);
 			}
 		});
 
@@ -3294,6 +3305,4 @@ public class Visualizador extends JFrame implements ServletContextListener {
     	System.out.println("Contexto WebServlet destroyed");	
     	System.exit(0);// Here - what you want to do that context shutdown    
    }
-	
-
 }
