@@ -22,7 +22,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 		@Override
 		public void registerStompEndpoints(StompEndpointRegistry registry) {
 			registry.addEndpoint("/topwebsocket")
-			.setAllowedOrigins(crossOriginAllowed)
+			.setAllowedOriginPatterns(crossOriginAllowed)
 			.withSockJS();
 			System.out.println("RegistradoStompEndpoint");
 		}

@@ -20,6 +20,7 @@ import java.util.Vector;
 
 @Component
 public class RemoteEngine {
+	
 	@Autowired
 	private Visualizador vis;
 	
@@ -96,6 +97,11 @@ public class RemoteEngine {
 	public void doClickButtonListenerRapido() {
 		vis.btnIncluirListenerRapido.doClick();
 
+	}
+	
+	public void doClickButtonPublishToSocket(boolean status) {
+		//remoteControl
+		vis.chckbxPublishToWebsocket.setSelected(status);
 	}
 	
 	

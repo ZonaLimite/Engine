@@ -17,7 +17,8 @@ public class RestFullCrossOriginConfig {
 	                @Override
 	                public void addCorsMappings(CorsRegistry registry) {
 	                        registry.addMapping("/engineTrace/**")
-	                                .allowedOrigins(crossOriginAllowed)
+	                                .allowCredentials(false) // Puesto a false para pruebas y para permitir crossOrigonAllowed = *
+	                        		.allowedOrigins(crossOriginAllowed)
 	                                .allowedMethods("GET", "POST", "PUT", "DELETE")
 	                                .maxAge(3600);
 	                }

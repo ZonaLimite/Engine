@@ -32,7 +32,7 @@ public class EngineProtocol {
 		ModelResultData rd=null;
 		
 		/*String tipoResult;
-		String[] data;*/
+		  String[] data;*/
 		System.out.println("Comando recibido :"+ comando.getTipoResult() +"-->"+( comando.data.length==0?"":comando.data[0]));
 		switch (comando.tipoResult) {
 		
@@ -141,6 +141,11 @@ public class EngineProtocol {
 		case "selectConsulta":
 			re.selectConsulta(comando.data[0]);
 			//devolver AckKnowledge siempre como Response Entity
+			break;
+		case "setWebsocketPublish":
+			String status = comando.data[0];
+			if(status.equals("1"))re.doClickButtonPublishToSocket(true);
+			if(status.equals("0"))re.doClickButtonPublishToSocket(false);
 			break;
 		}	
 		return rd;
