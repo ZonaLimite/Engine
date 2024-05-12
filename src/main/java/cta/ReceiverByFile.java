@@ -71,7 +71,9 @@ public class ReceiverByFile implements Runnable {
 	
 					// filtrar por catalogo de filtros texto (normalmente por cada linea)
 					sArrayFilter = vis.getCatalogFiltersRegistry(nameConsulta);
+					Thread.yield();
 					Thread.sleep(10);
+				
 					cadenaMensaje = br.readLine();
 	
 	
@@ -105,8 +107,8 @@ public class ReceiverByFile implements Runnable {
 			log.info("Hilo ByFile de sistema " + this.cTarea.getNameSocketSistema() + ":" +this+ " finalizado.");
 			
 			try {
-				br.close();
-				fr.close();
+				if(br!=null)br.close();
+				if(fr!=null)fr.close();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
