@@ -196,7 +196,7 @@ public class Visualizador extends JFrame implements ServletContextListener {
 	private JComboBox<String> comboFiltrosActivos;
 	private JComboBox<ModelFilter> comboListenersActivos;
 	private JComboBox<String> combo_Tareas;
-	private JComboBox<String> comboSistemas;
+	JComboBox<String> comboSistemas;
 
 	private JList<String> listaTareas;
 	private JLabel labelFiltrosCount;
@@ -234,7 +234,7 @@ public class Visualizador extends JFrame implements ServletContextListener {
 	private ConcurrentHashMap<String, Tarea> catalogoTareas; 
 
 	// vector contenedor de modulos registrables (memoria)
-	private Vector<Modulo> modulosRegistrables;
+	Vector<Modulo> modulosRegistrables;
 
 	private JTextField FilterByIdValue;
 	private JTextField selectByIdValue;
@@ -453,13 +453,14 @@ public class Visualizador extends JFrame implements ServletContextListener {
 
 		// Inicializar el IHM
 		this.initFrameVisualizador();
-		// Inicializar repositorios de modulos 
-		this.modulosRegistrables = this.initVectorModules(this.comboSistemas.getSelectedItem() + ".csv");
-		// Inicializar estructuras de datos y contexto
+	
 		this.initStructures();
 		//Actualizat info conexion sistemas
 		this.initInfoConexiones("Madrid");
 		System.out.println("Visualizador arrancando ...");
+		// Inicializar repositorios de modulos 
+		//this.modulosRegistrables = this.initVectorModules(this.comboSistemas.getSelectedItem() + ".csv");
+	
 
 		
 		/*Vector vCentros = new Vector();
@@ -2523,13 +2524,21 @@ public class Visualizador extends JFrame implements ServletContextListener {
 	}
 
 	// Inicializa el vector de modulos tratables
-	private Vector<Modulo> initVectorModules(String sistema) {
+	Vector<Modulo> initVectorModules(String sistema) {
 		Vector<Modulo> vModules = new Vector<Modulo>();
 
-		URL url = getClass().getClassLoader().getResource("cta/resources/");
-		String ruta="";
+		//URL url = getClass().getClassLoader().getResource("static/");
+		
+		//String ruta = catalogos;
+		String ruta = catalogos;
+		System.out.println("Ruta catalogos="+catalogos);
+
+		//String ruta = "E:\\git\\Socket2";
+		
+
 		try {
-			ruta = URLDecoder.decode(new File(url.getPath()).getAbsolutePath(), StandardCharsets.UTF_8.toString());
+			//ruta = URLDecoder.decode(new File(url.getPath()).getAbsolutePath(), StandardCharsets.UTF_8.toString());
+			ruta = URLDecoder.decode(ruta, StandardCharsets.UTF_8.toString());
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

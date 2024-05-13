@@ -42,7 +42,7 @@ public class Dispatcher implements Runnable {
 
 		try {
 			sizeBufferSistema = mySocketSistema.getReceiveBufferSize();
-			log.info("Tamaño ajustado de buffer DatagramSocket :"+sizeBufferSistema);
+			log.info("Tamano ajustado de buffer DatagramSocket :"+sizeBufferSistema);
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
