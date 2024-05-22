@@ -12,60 +12,58 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import cta.designe.listener.Algoritmos;
 import cta.remote.stompbroker.ModelEventTrace;
 
-
-
 public class Receiver implements Runnable {
-	
+
 	private DatagramSocket mySocket = null;
 	private Visualizador vis;
 	private ConsultaTarea cTarea;
 	private SimpMessagingTemplate smt;
-	
 
 	Algoritmos algoritmos;
 	Logger log = Logger.getLogger("Receiver");
 
-
 	public void run() {
-		//Registrar este receiver para el sistema dado (max. 3 hilos)
-		Vector<Receiver> vThreads= vis.getThreadReceiverRegistry().get(cTarea.getNameSocketSistema());
+		// Registrar este receiver para el sistema dado (max. 3 hilos)
+		Vector<Receiver> vThreads = vis.getThreadReceiverRegistry().get(cTarea.getNameSocketSistema());
 		vThreads.add(this);
 		vis.getThreadReceiverRegistry().put(cTarea.getNameSocketSistema(), vThreads);
 		vis.refreshLedsSocketsStatus();
-		
+
 		String cadenaMensaje;
 		algoritmos = new Algoritmos();
 
 		try {
-			log.info("Tama�o ajustado de buffer DatagramSocket :"+ mySocket.getReceiveBufferSize());
-			log.info("Desde Hilo "+cTarea.getNameSocketSistema()+" trabajando "+ cTarea.getNombreConsultaFull());
+			log.info("Tama�o ajustado de buffer DatagramSocket :" + mySocket.getReceiveBufferSize());
+			log.info("Desde Hilo " + cTarea.getNameSocketSistema() + " trabajando " + cTarea.getNombreConsultaFull());
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		int sizeBufferDatagramPacket=4096;
-		int sizeReadBytes=2048;
+		int sizeBufferDatagramPacket = 4096;
+		int sizeReadBytes = 2048;
 		String[] sArrayFilter = null;
 		do {
 			byte[] RecogerServidor_bytes = new byte[sizeBufferDatagramPacket];
-		
+
 			try {
 				// EsperamoHilo Finalizado"s a recibir un paquete/
-				
+
 				DatagramPacket servPaquete = new DatagramPacket(RecogerServidor_bytes, sizeReadBytes);
 				mySocket.receive(servPaquete);
-				
+
 				String sPacket = new String(RecogerServidor_bytes).trim();
 
-				//El visualizador es comun a todos los hilos [singleton] y el Text Area es el mimso para todos
-				//el catalogFilter es construido por cada consulta activa, lo que implica que la 
-				//construccion del catalog Filter debe elaborarse en base a todas las consultas activas y/o modo
+				// El visualizador es comun a todos los hilos [singleton] y el Text Area es el
+				// mimso para todos
+				// el catalogFilter es construido por cada consulta activa, lo que implica que
+				// la
+				// construccion del catalog Filter debe elaborarse en base a todas las consultas
+				// activas y/o modo
 
-
-				//sArrayFilter = vis.getCatalogFilter(sistemaSocket);
+				// sArrayFilter = vis.getCatalogFilter(sistemaSocket);
 				String nameConsulta = cTarea.getNombreConsultaFull();
 				sArrayFilter = vis.getCatalogFiltersRegistry(nameConsulta);
-				
+
 				// Splitamos el mensaje recibido en lineas
 				// Por cada LinesistemaSocket
 				StringTokenizer st = new StringTokenizer(sPacket, System.getProperty("line.separator") + "|\r");
@@ -73,28 +71,29 @@ public class Receiver implements Runnable {
 					cadenaMensaje = st.nextToken();
 
 					// filtrar por catalogo de filtros texto (normalmente por cada linea)
-					if(algoritmos.filterMatch(cadenaMensaje, sArrayFilter, vis.getFilterExclusive().isSelected())) {
+					if (algoritmos.filterMatch(cadenaMensaje, sArrayFilter, vis.getFilterExclusive().isSelected())) {
 						handlerWriteLine(cadenaMensaje);
 					}
 				}
 
 			} catch (Exception e) {
 				Vector<String> paraVerMasks = new Vector<String>();
-				for (String mask: vis.getCatalogFiltersRegistry(cTarea.getNombreConsultaFull())) {
+				for (String mask : vis.getCatalogFiltersRegistry(cTarea.getNombreConsultaFull())) {
 					paraVerMasks.add(mask);
 				}
-				System.err.println("Hilo "+ cTarea.nombreConsultaTareaFull() +" "+this +" trabajando Mascaras "+cTarea.getNombreConsultaFull()+paraVerMasks+ " "+ e.getMessage());
+				System.err.println("Hilo " + cTarea.nombreConsultaTareaFull() + " " + this + " trabajando Mascaras "
+						+ cTarea.getNombreConsultaFull() + paraVerMasks + " " + e.getMessage());
 			}
 		} while ((vis.getFlagDisconnectRegistry()).get(cTarea.getNameSocketSistema()) == 0);
-		//hacemos limpieza en el registro
-		vThreads= vis.getThreadReceiverRegistry().get(cTarea.getNameSocketSistema());
+		// hacemos limpieza en el registro
+		vThreads = vis.getThreadReceiverRegistry().get(cTarea.getNameSocketSistema());
 		vThreads.remove(this);
 		vis.getThreadReceiverRegistry().put(cTarea.getNameSocketSistema(), vThreads);
 		vis.refreshLedsSocketsStatus();
 		handlerWriteLine("Hilo Finalizado");
-		log.info("Hilo de sistema " + this.cTarea.getNameSocketSistema() + ":" +this+ " finalizado.");
+		log.info("Hilo de sistema " + this.cTarea.getNameSocketSistema() + ":" + this + " finalizado.");
 		mySocket = null;
-	
+
 	}
 
 	public void handlerWriteLine(String cadena) {
@@ -132,22 +131,19 @@ public class Receiver implements Runnable {
 				vis.getTextAreaHandlers().append(cadena.concat(System.getProperty("line.separator")));
 			}
 		}
-
 		// Configuracion 4
-		// Dispatching evento
-		if(vis.chckbxPublishToWebsocket.isSelected())
-			smt.convertAndSend("/channel/traces", new ModelEventTrace("eventTrace",cadena));
-			System.out.println("Enviado evento");
-		}	
-
+				// Dispatching evento
+		if(vis.chckbxPublishToWebsocket.isSelected()) {
+			if (algoritmos.filterMatch(cadena,vis.getCatalogListener(), true)) {
+				smt.convertAndSend("/channel/traces", new ModelEventTrace("eventTrace",cadena));
+				}
+		}
+	}
 	
-
-
-
-	public Receiver(DatagramSocket socket, Visualizador visualizador, ConsultaTarea cTarea, SimpMessagingTemplate smt ) {
+	public Receiver(DatagramSocket socket, Visualizador visualizador, ConsultaTarea cTarea, SimpMessagingTemplate smt) {
 		this.mySocket = socket;
 		this.vis = visualizador;
 		this.cTarea = cTarea;
-		this.smt=smt;
+		this.smt = smt;
 	}
 }

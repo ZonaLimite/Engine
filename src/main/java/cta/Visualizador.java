@@ -1163,9 +1163,9 @@ public class Visualizador extends JFrame implements ServletContextListener {
 			gl_panel_4.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_panel_4.createSequentialGroup()
 					.addContainerGap()
-					.addComponent(panel_2_1, GroupLayout.PREFERRED_SIZE, 548, GroupLayout.PREFERRED_SIZE)
+					.addComponent(panel_2_1, GroupLayout.PREFERRED_SIZE, 570, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(panel_3_1, GroupLayout.DEFAULT_SIZE, 939, Short.MAX_VALUE)
+					.addComponent(panel_3_1, GroupLayout.PREFERRED_SIZE, 897, Short.MAX_VALUE)
 					.addContainerGap())
 		);
 		gl_panel_4.setVerticalGroup(
