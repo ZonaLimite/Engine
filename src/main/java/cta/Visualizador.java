@@ -2129,7 +2129,7 @@ public class Visualizador extends JFrame implements ServletContextListener {
 	
 	public void mostrarAyudaModulo(Modulo mod) {
 		// Se obtiene el sistema desde el combo sistemas
-		enviarComando("sc " + mod.getNombre() + " he",(String) comboSistemas.getSelectedItem());
+		enviarComando("sc " + mod.getNombre() + " he",(String) comboSistemas.getSelectedItem()+":"+ spinner.getValue());
 
 	}
 

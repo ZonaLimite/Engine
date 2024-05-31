@@ -89,9 +89,10 @@ public class Receiver implements Runnable {
 		vThreads = vis.getThreadReceiverRegistry().get(cTarea.getNameSocketSistema());
 		vThreads.remove(this);
 		vis.getThreadReceiverRegistry().put(cTarea.getNameSocketSistema(), vThreads);
-		vis.refreshLedsSocketsStatus();
+		
 		handlerWriteLine("Hilo Finalizado");
 		log.info("Hilo de sistema " + this.cTarea.getNameSocketSistema() + ":" + this + " finalizado.");
+		vis.refreshLedsSocketsStatus();
 		mySocket = null;
 
 	}
