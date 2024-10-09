@@ -46,7 +46,7 @@ public class ReceiverByFile implements Runnable {
 		vis.getThreadReceiverByFileRegistry().put(cTarea.getNameSocketSistema(), this);
 		vis.refreshLedsSocketsStatus();
 		
-		String cadenaMensaje;
+		String cadenaMensaje=null;
 		algoritmos = new Algoritmos();
 
 		String nameConsulta = cTarea.getNombreConsultaFull();
@@ -72,7 +72,7 @@ public class ReceiverByFile implements Runnable {
 					// filtrar por catalogo de filtros texto (normalmente por cada linea)
 					sArrayFilter = vis.getCatalogFiltersRegistry(nameConsulta);
 					Thread.yield();
-					Thread.sleep(10);
+					Thread.sleep(2);
 				
 					cadenaMensaje = br.readLine();
 	
@@ -91,10 +91,10 @@ public class ReceiverByFile implements Runnable {
 					}
 					System.err.println("Hilo "+ cTarea.nombreConsultaTareaFull() +" "+this +" trabajando Mascaras :"+paraVerMasks+ " "+ e.getMessage());
 				}
-				cadenaMensaje=br.readLine();
+				//cadenaMensaje=br.readLine();
 			
-			} while ((vis.getFlagDisconnectRegistry()).get(cTarea.getNameSocketSistema()) == 0 |
-				cadenaMensaje==null	);
+			} while ((vis.getFlagDisconnectRegistry()).get(cTarea.getNameSocketSistema()) == 0 &&
+				cadenaMensaje!=null	);
 		
 		} catch (IOException e) {
 			System.out.println("Problema al tratar fichero :" + cTarea.getNameFileSource());
