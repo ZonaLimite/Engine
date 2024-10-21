@@ -248,6 +248,8 @@ public class Visualizador extends JFrame implements ServletContextListener {
 
 	// Definicion e la tabla de Events
 	private JTable tableModelFilter;
+	private JTextField sBucket;
+	private JTextField textBucketIHM;
 
 	public JComboBox<ModelFilter> getComboListenersActivos() {
 		return comboListenersActivos;
@@ -1428,6 +1430,25 @@ public class Visualizador extends JFrame implements ServletContextListener {
 		
 		chckbxPublishToWebsocket = new JCheckBox("Publish to webSocket");
 		
+		JLabel lblNewLabel_6 = new JLabel("CubaTool");
+		
+		sBucket = new JTextField();
+		sBucket.setHorizontalAlignment(SwingConstants.CENTER);
+		sBucket.setColumns(10);
+		
+		JLabel label = new JLabel("->");
+		
+		textBucketIHM = new JTextField();
+		textBucketIHM.setHorizontalAlignment(SwingConstants.CENTER);
+		textBucketIHM.setColumns(10);
+		
+		JButton btnMostrar = new JButton("Show");
+		btnMostrar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				textBucketIHM.setText(CubaTool.convertToIHMCuba(Integer.parseInt(sBucket.getText())));
+			}
+		});
+		
 		GroupLayout gl_panel_1 = new GroupLayout(panel_1);
 		gl_panel_1.setHorizontalGroup(
 			gl_panel_1.createParallelGroup(Alignment.LEADING)
@@ -1454,21 +1475,31 @@ public class Visualizador extends JFrame implements ServletContextListener {
 									.addComponent(borrar, GroupLayout.PREFERRED_SIZE, 87, GroupLayout.PREFERRED_SIZE)))
 							.addGap(4)
 							.addComponent(chckbxPublishToWebsocket)
-							.addPreferredGap(ComponentPlacement.RELATED, 156, Short.MAX_VALUE)
+							.addGap(108)
 							.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+								.addComponent(lblNewLabel_3, GroupLayout.PREFERRED_SIZE, 123, GroupLayout.PREFERRED_SIZE)
 								.addGroup(gl_panel_1.createSequentialGroup()
 									.addComponent(textFieldListener1, GroupLayout.PREFERRED_SIZE, 184, GroupLayout.PREFERRED_SIZE)
 									.addPreferredGap(ComponentPlacement.RELATED)
-									.addComponent(btnIncluirListenerRapido))
-								.addComponent(lblNewLabel_3, GroupLayout.PREFERRED_SIZE, 123, GroupLayout.PREFERRED_SIZE))
-							.addGap(387))
+									.addComponent(btnIncluirListenerRapido)))
+							.addGap(60)
+							.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING, false)
+								.addComponent(sBucket, 0, 0, Short.MAX_VALUE)
+								.addComponent(lblNewLabel_6, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+							.addPreferredGap(ComponentPlacement.UNRELATED)
+							.addComponent(label, GroupLayout.PREFERRED_SIZE, 21, GroupLayout.PREFERRED_SIZE)
+							.addGap(6)
+							.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING, false)
+								.addComponent(textBucketIHM, GroupLayout.PREFERRED_SIZE, 75, GroupLayout.PREFERRED_SIZE)
+								.addComponent(btnMostrar, GroupLayout.PREFERRED_SIZE, 75, GroupLayout.PREFERRED_SIZE))
+							.addContainerGap(172, Short.MAX_VALUE))
 						.addGroup(gl_panel_1.createSequentialGroup()
 							.addComponent(checkListener1)
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addComponent(lblListenersActivos, GroupLayout.PREFERRED_SIZE, 146, GroupLayout.PREFERRED_SIZE)
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addComponent(labelListenersCount, GroupLayout.PREFERRED_SIZE, 21, GroupLayout.PREFERRED_SIZE)
-							.addContainerGap(935, Short.MAX_VALUE))))
+							.addContainerGap(933, Short.MAX_VALUE))))
 		);
 		gl_panel_1.setVerticalGroup(
 			gl_panel_1.createParallelGroup(Alignment.TRAILING)
@@ -1498,13 +1529,19 @@ public class Visualizador extends JFrame implements ServletContextListener {
 									.addComponent(chckbxPublishToWebsocket))
 								.addGroup(gl_panel_1.createSequentialGroup()
 									.addGap(11)
-									.addComponent(lblNewLabel_3)))
+									.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE)
+										.addComponent(lblNewLabel_3)
+										.addComponent(lblNewLabel_6)
+										.addComponent(btnMostrar))))
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
 								.addComponent(comboListenersActivos, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE)
 									.addComponent(textFieldListener1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-									.addComponent(btnIncluirListenerRapido)))))
+									.addComponent(btnIncluirListenerRapido)
+									.addComponent(sBucket, GroupLayout.PREFERRED_SIZE, 27, GroupLayout.PREFERRED_SIZE)
+									.addComponent(textBucketIHM, GroupLayout.PREFERRED_SIZE, 27, GroupLayout.PREFERRED_SIZE)
+									.addComponent(label)))))
 					.addContainerGap(16, Short.MAX_VALUE))
 		);
 		panel_1.setLayout(gl_panel_1);
