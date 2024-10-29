@@ -243,7 +243,7 @@ public class Visualizador extends JFrame implements ServletContextListener {
 	private JCheckBox chckbxBufferearConsulta;
 
 	// Cola de cadenas recibidas (filtradas) desde los brokers de maquina
-	int Max_Size_Queue = 200000;
+	int Max_Size_Queue = 400000;
 	private ArrayBlockingQueue<String> cadenasFiltradas = new ArrayBlockingQueue<String>(this.Max_Size_Queue);
 
 	// Definicion e la tabla de Events
@@ -455,6 +455,7 @@ public class Visualizador extends JFrame implements ServletContextListener {
 
 		// Inicializar el IHM
 		this.initFrameVisualizador();
+		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 	
 		this.initStructures();
 		//Actualizat info conexion sistemas
@@ -465,9 +466,10 @@ public class Visualizador extends JFrame implements ServletContextListener {
 	
 
 		
-		/*Vector vCentros = new Vector();
+		Vector vCentros = new Vector();
 		vCentros.add("Madrid");
 		vCentros.add("Valladolid");
+		vCentros.add("Valencia");
 		Object selConsulta = JOptionPane.showInputDialog(contentPane, "Seleccione Centro",
 				"Selector de Centro", JOptionPane.QUESTION_MESSAGE, null, vCentros.toArray(),
 				"Seleccione Centro");
@@ -475,7 +477,7 @@ public class Visualizador extends JFrame implements ServletContextListener {
 		
 		reloadCatalogos();
 		//rdbtnModo1.setSelected(true);
-		this.setVisible(true);*/
+		this.setVisible(true);
 
 	}
 	private void initStructures() {
@@ -2458,6 +2460,64 @@ public class Visualizador extends JFrame implements ServletContextListener {
 
 			refreshLedsSocketsStatus();
 		}
+		if(centro=="Valencia") {
+			infoSistema = new InfoConexionSistema();
+			infoSistema.setCentro(centro);
+			infoSistema.setIp("21.2.12.139");
+			infoSistema.setNameSocketSistema("IL:1");
+			infoSistema.setTopNumero(1);
+			this.infoConexionRegistry.put("IL:1", infoSistema);
+			this.ledSocketRegistry.put("IL:1", chckbxTOP1_IL);	
+			this.numThreadsLabel.put("IL:1", lblCountThreads_IL_1);
+			
+
+			infoSistema = new InfoConexionSistema();
+			infoSistema.setCentro(centro);
+			infoSistema.setIp("21.2.12.149");
+			infoSistema.setNameSocketSistema("IL:2");
+			infoSistema.setTopNumero(2);
+			this.infoConexionRegistry.put("IL:2", infoSistema);
+			this.ledSocketRegistry.put("IL:2", chckbxTOP2_IL);
+			this.numThreadsLabel.put("IL:2", lblCountThreads_IL_2);			
+			
+			infoSistema = new InfoConexionSistema();
+			infoSistema.setCentro(centro);
+			infoSistema.setIp("21.2.13.139");
+			infoSistema.setNameSocketSistema("SCO:1");
+			infoSistema.setTopNumero(1);
+			this.infoConexionRegistry.put("SCO:1", infoSistema);
+			this.ledSocketRegistry.put("SCO:1", chckbxTOP1_SCO);
+			this.numThreadsLabel.put("SCO:1", lblCountThreads_SCO_1);
+			
+			infoSistema = new InfoConexionSistema();
+			infoSistema.setCentro(centro);
+			infoSistema.setIp("21.2.13.149");
+			infoSistema.setNameSocketSistema("SCO:2");
+			infoSistema.setTopNumero(2);
+			this.infoConexionRegistry.put("SCO:2", infoSistema);
+			this.ledSocketRegistry.put("SCO:2", chckbxTOP2_SCO);
+			this.numThreadsLabel.put("SCO:2", lblCountThreads_SCO_2);
+			
+			infoSistema = new InfoConexionSistema();
+			infoSistema.setCentro(centro);
+			infoSistema.setIp("21.2.14.139");
+			infoSistema.setNameSocketSistema("ATHS:1");
+			infoSistema.setTopNumero(1);
+			this.infoConexionRegistry.put("ATHS:1", infoSistema);
+			this.ledSocketRegistry.put("ATHS:1", chckbxTOP1_ATHS);
+			this.numThreadsLabel.put("ATHS:1", lblCountThreads_ATHS_1);			
+			
+			infoSistema = new InfoConexionSistema();
+			infoSistema.setCentro(centro);
+			infoSistema.setIp("21.2.14.149");
+			infoSistema.setNameSocketSistema("ATHS:2");
+			infoSistema.setTopNumero(2);
+			this.infoConexionRegistry.put("ATHS:2", infoSistema);
+			this.ledSocketRegistry.put("ATHS:2", chckbxTOP2_ATHS);	
+			this.numThreadsLabel.put("ATHS:2", lblCountThreads_ATHS_2);	
+
+			refreshLedsSocketsStatus();
+		}
 		
 	}
 	
@@ -3349,6 +3409,7 @@ public class Visualizador extends JFrame implements ServletContextListener {
     public void contextDestroyed(
         ServletContextEvent sce) {
     	System.out.println("Contexto WebServlet destroyed");	
-    	System.exit(0);// Here - what you want to do that context shutdown    
+    	this.setVisible(false);
+    	//System.exit(0);// Here - what you want to do that context shutdown    
    }
 }
