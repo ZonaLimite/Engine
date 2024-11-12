@@ -243,7 +243,7 @@ public class Visualizador extends JFrame implements ServletContextListener {
 	private JCheckBox chckbxBufferearConsulta;
 
 	// Cola de cadenas recibidas (filtradas) desde los brokers de maquina
-	int Max_Size_Queue = 400000;
+	int Max_Size_Queue = 600000;
 	private ArrayBlockingQueue<String> cadenasFiltradas = new ArrayBlockingQueue<String>(this.Max_Size_Queue);
 
 	// Definicion e la tabla de Events
