@@ -463,7 +463,7 @@ public class Visualizador extends JFrame implements ServletContextListener {
 	
 		this.initStructures();
 		//Actualizat info conexion sistemas
-		this.initInfoConexiones("Madrid");
+		//this.initInfoConexiones("Madrid");
 		System.out.println("Visualizador arrancando ...");
 		// Inicializar repositorios de modulos 
 		//this.modulosRegistrables = this.initVectorModules(this.comboSistemas.getSelectedItem() + ".csv");
@@ -2388,7 +2388,7 @@ public class Visualizador extends JFrame implements ServletContextListener {
 			infoSistema.setCentro(centro);
 			infoSistema.setIp("21.4.15.149");
 			infoSistema.setNameSocketSistema("PC:2");
-			infoSistema.setTopNumero(1);
+			infoSistema.setTopNumero(2);
 			this.infoConexionRegistry.put("PC:2", infoSistema);
 			this.ledSocketRegistry.put("PC:2", chckbxTOP2_PC);	
 			this.numThreadsLabel.put("PC:2", lblCountThreads_PC_2);
