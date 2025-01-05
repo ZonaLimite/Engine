@@ -128,7 +128,7 @@ public class Receiver implements Runnable {
 		// Comprobar Listeners
 		if (vis.getCheckListener1().isSelected()) {  
 		
-			if (algoritmos.filterMatch(cadena,vis.getCatalogListener(), true)) {
+			if (algoritmos.filterMatch(cadena,vis.getCatalogListener() , true)&& !cadena.contains("DBGM")) {
 				vis.getTextAreaHandlers().append(cadena.concat(System.getProperty("line.separator")));
 			}
 		}
