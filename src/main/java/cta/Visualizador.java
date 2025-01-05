@@ -171,6 +171,8 @@ public class Visualizador extends JFrame implements ServletContextListener {
 	private JTextField filter;
 
 	public JSpinner spinner;
+	private JCheckBox chckbxTOP1_PC;
+	private JCheckBox chckbxTOP2_PC; 
 	private JCheckBox chckbxTOP1_IL;
 	private JCheckBox chckbxTOP2_IL;
 	private JCheckBox chckbxTOP1_SCO;
@@ -179,6 +181,8 @@ public class Visualizador extends JFrame implements ServletContextListener {
 	private JCheckBox chckbxTOP2_ATHS;
 	public JCheckBox chckbxPublishToWebsocket;
 	
+	private JLabel lblCountThreads_PC_1;
+	private JLabel lblCountThreads_PC_2;
 	private JLabel lblCountThreads_IL_2;
 	private JLabel lblCountThreads_SCO_2;
 	private JLabel lblCountThreads_ATHS_2;
@@ -656,7 +660,7 @@ public class Visualizador extends JFrame implements ServletContextListener {
 		scrollPaneListaTareas.setViewportView(listaTareas);
 				comboSistemas = new JComboBox(fenetreStrings);
 				comboSistemas.setFont(new Font("Dialog", Font.PLAIN, 12));
-				comboSistemas.setModel(new DefaultComboBoxModel(this.aSistemas));
+				comboSistemas.setModel(new DefaultComboBoxModel(new String[] {"IL", "SCO", "ATHS", "PC"}));
 				comboSistemas.addItemListener(new ItemListener() {
 					public void itemStateChanged(ItemEvent arg0) {
 						if (!(arg0.getItem() == null && arg0.getStateChange() == 1)) {
@@ -733,12 +737,28 @@ public class Visualizador extends JFrame implements ServletContextListener {
 		});
 		rdbtnModo2.setFont(new Font("Dialog", Font.BOLD, 12));
 		buttonGroup.add(rdbtnModo2);
+		
+		chckbxTOP1_PC = new JCheckBox("PC");
+		chckbxTOP1_PC.setBorder(new CompoundBorder(null, UIManager.getBorder("CheckBoxMenuItem.border")));
+		chckbxTOP1_PC.setBackground(Color.WHITE);
+		
+		lblCountThreads_PC_1 = new JLabel("0");
+		
+		chckbxTOP2_PC = new JCheckBox("PC");
+		chckbxTOP2_PC.setBorder(new CompoundBorder(null, UIManager.getBorder("CheckBoxMenuItem.border")));
+		chckbxTOP2_PC.setBackground(Color.WHITE);
+		
+		lblCountThreads_PC_2 = new JLabel("0");
 
 		
 		GroupLayout gl_panel_2_1 = new GroupLayout(panel_2_1);
 		gl_panel_2_1.setHorizontalGroup(
 			gl_panel_2_1.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_panel_2_1.createSequentialGroup()
+					.addGap(189)
+					.addComponent(lblNewLabel_4, GroupLayout.PREFERRED_SIZE, 63, GroupLayout.PREFERRED_SIZE)
+					.addContainerGap(493, Short.MAX_VALUE))
+				.addGroup(Alignment.TRAILING, gl_panel_2_1.createSequentialGroup()
 					.addContainerGap()
 					.addGroup(gl_panel_2_1.createParallelGroup(Alignment.LEADING)
 						.addGroup(gl_panel_2_1.createSequentialGroup()
@@ -746,22 +766,31 @@ public class Visualizador extends JFrame implements ServletContextListener {
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addComponent(spinner, GroupLayout.PREFERRED_SIZE, 42, GroupLayout.PREFERRED_SIZE)
 							.addGap(18))
-						.addComponent(btnNewTarea, GroupLayout.DEFAULT_SIZE, 113, Short.MAX_VALUE)
+						.addComponent(btnNewTarea, GroupLayout.DEFAULT_SIZE, 133, Short.MAX_VALUE)
 						.addComponent(label_1)
 						.addComponent(rdbtnModo2, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addComponent(btnNewButton_3, GroupLayout.DEFAULT_SIZE, 113, Short.MAX_VALUE)
-						.addComponent(btnNewButton_4, GroupLayout.DEFAULT_SIZE, 113, Short.MAX_VALUE))
+						.addComponent(btnNewButton_3, GroupLayout.DEFAULT_SIZE, 133, Short.MAX_VALUE)
+						.addComponent(btnNewButton_4, GroupLayout.DEFAULT_SIZE, 133, Short.MAX_VALUE))
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_panel_2_1.createParallelGroup(Alignment.LEADING)
-						.addComponent(comboSistemas, 0, 218, Short.MAX_VALUE)
+						.addComponent(comboSistemas, 0, 215, Short.MAX_VALUE)
 						.addGroup(gl_panel_2_1.createSequentialGroup()
 							.addComponent(conectar, GroupLayout.PREFERRED_SIZE, 98, GroupLayout.PREFERRED_SIZE)
 							.addPreferredGap(ComponentPlacement.UNRELATED)
 							.addComponent(desconectar, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-						.addComponent(scrollPaneListaTareas, GroupLayout.DEFAULT_SIZE, 218, Short.MAX_VALUE)
-						.addComponent(combo_Tareas, 0, 218, Short.MAX_VALUE))
+						.addComponent(scrollPaneListaTareas, GroupLayout.DEFAULT_SIZE, 215, Short.MAX_VALUE)
+						.addComponent(combo_Tareas, 0, 215, Short.MAX_VALUE))
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_panel_2_1.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_panel_2_1.createSequentialGroup()
+							.addComponent(chckbxTOP1_PC, GroupLayout.PREFERRED_SIZE, 53, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(lblCountThreads_PC_1, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(chckbxTOP2_PC, GroupLayout.PREFERRED_SIZE, 53, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(lblCountThreads_PC_2, GroupLayout.PREFERRED_SIZE, 29, GroupLayout.PREFERRED_SIZE)
+							.addContainerGap())
 						.addGroup(gl_panel_2_1.createSequentialGroup()
 							.addGroup(gl_panel_2_1.createParallelGroup(Alignment.LEADING)
 								.addGroup(gl_panel_2_1.createSequentialGroup()
@@ -806,10 +835,6 @@ public class Visualizador extends JFrame implements ServletContextListener {
 								.addComponent(btnEnviarComando, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE)
 								.addComponent(comando, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE))
 							.addContainerGap())))
-				.addGroup(gl_panel_2_1.createSequentialGroup()
-					.addGap(189)
-					.addComponent(lblNewLabel_4, GroupLayout.PREFERRED_SIZE, 63, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(452, Short.MAX_VALUE))
 		);
 		gl_panel_2_1.setVerticalGroup(
 			gl_panel_2_1.createParallelGroup(Alignment.LEADING)
@@ -869,7 +894,13 @@ public class Visualizador extends JFrame implements ServletContextListener {
 							.addComponent(btnNewButton_3)
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addComponent(btnNewButton_4)))
-					.addGap(24))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_panel_2_1.createParallelGroup(Alignment.BASELINE)
+						.addComponent(chckbxTOP1_PC, GroupLayout.PREFERRED_SIZE, 19, GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblCountThreads_PC_1)
+						.addComponent(chckbxTOP2_PC, GroupLayout.PREFERRED_SIZE, 19, GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblCountThreads_PC_2))
+					.addGap(6))
 		);
 		panel_2_1.setLayout(gl_panel_2_1);
 
@@ -1176,9 +1207,9 @@ public class Visualizador extends JFrame implements ServletContextListener {
 			gl_panel_4.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_panel_4.createSequentialGroup()
 					.addGap(12)
-					.addGroup(gl_panel_4.createParallelGroup(Alignment.TRAILING)
-						.addComponent(panel_2_1, Alignment.LEADING, 0, 0, Short.MAX_VALUE)
-						.addComponent(panel_3_1, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addGroup(gl_panel_4.createParallelGroup(Alignment.LEADING)
+						.addComponent(panel_2_1, GroupLayout.PREFERRED_SIZE, 241, Short.MAX_VALUE)
+						.addComponent(panel_3_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 					.addContainerGap())
 		);
 		panel_4.setLayout(gl_panel_4);
@@ -2342,6 +2373,27 @@ public class Visualizador extends JFrame implements ServletContextListener {
 	private void initInfoConexiones(String centro) {
 		InfoConexionSistema infoSistema;
 		if(centro=="Madrid") {
+			infoSistema = new InfoConexionSistema();
+			//infoSistema.setId("Linea_Entrada1");
+			infoSistema.setCentro(centro);
+			infoSistema.setIp("21.4.15.139");
+			infoSistema.setNameSocketSistema("PC:1");
+			infoSistema.setTopNumero(1);
+			this.infoConexionRegistry.put("PC:1", infoSistema);
+			this.ledSocketRegistry.put("PC:1", chckbxTOP1_PC);	
+			this.numThreadsLabel.put("PC:1", lblCountThreads_PC_1);
+
+			infoSistema = new InfoConexionSistema();
+			//infoSistema.setId("Linea_Entrada1");
+			infoSistema.setCentro(centro);
+			infoSistema.setIp("21.4.15.149");
+			infoSistema.setNameSocketSistema("PC:2");
+			infoSistema.setTopNumero(1);
+			this.infoConexionRegistry.put("PC:2", infoSistema);
+			this.ledSocketRegistry.put("PC:2", chckbxTOP2_PC);	
+			this.numThreadsLabel.put("PC:2", lblCountThreads_PC_2);
+
+			
 			infoSistema = new InfoConexionSistema();
 			//infoSistema.setId("Linea_Entrada1");
 			infoSistema.setCentro(centro);
