@@ -3308,7 +3308,7 @@ public class Visualizador extends JFrame implements ServletContextListener {
 				}	
 
 			}
-		System.out.println("Indices de " + sSelected[i]+ ":" + mapOfKeySFilters.get(sSelected[i]));
+		//System.out.println("Indices de " + sSelected[i]+ ":" + mapOfKeySFilters.get(sSelected[i]));
 		}
 		
 		//Fase 2:
