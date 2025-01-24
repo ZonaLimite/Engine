@@ -39,8 +39,8 @@ public class Receiver implements Runnable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		int sizeBufferDatagramPacket = 4096;
-		int sizeReadBytes = 2048;
+		int sizeBufferDatagramPacket = 8192;
+		//int sizeReadBytes = 2048;
 		String[] sArrayFilter = null;
 		do {
 			byte[] RecogerServidor_bytes = new byte[sizeBufferDatagramPacket];
@@ -48,10 +48,10 @@ public class Receiver implements Runnable {
 			try {
 				// EsperamoHilo Finalizado"s a recibir un paquete/
 
-				DatagramPacket servPaquete = new DatagramPacket(RecogerServidor_bytes, sizeReadBytes);
+				DatagramPacket servPaquete = new DatagramPacket(RecogerServidor_bytes, RecogerServidor_bytes.length);
 				mySocket.receive(servPaquete);
 
-				String sPacket = new String(RecogerServidor_bytes).trim();
+				String sPacket = new String(servPaquete.getData()).trim();
 
 				// El visualizador es comun a todos los hilos [singleton] y el Text Area es el
 				// mimso para todos
