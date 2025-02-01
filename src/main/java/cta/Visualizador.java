@@ -1931,14 +1931,14 @@ public class Visualizador extends JFrame implements ServletContextListener {
 			gl_panel_JTextArea_Comandos.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_panel_JTextArea_Comandos.createSequentialGroup()
 					.addContainerGap()
-					.addComponent(scrollPaneComandos, GroupLayout.PREFERRED_SIZE, 904, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(601, Short.MAX_VALUE))
+					.addComponent(scrollPaneComandos, GroupLayout.DEFAULT_SIZE, 953, Short.MAX_VALUE)
+					.addContainerGap())
 		);
 		gl_panel_JTextArea_Comandos.setVerticalGroup(
 			gl_panel_JTextArea_Comandos.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_panel_JTextArea_Comandos.createSequentialGroup()
 					.addContainerGap()
-					.addComponent(scrollPaneComandos, GroupLayout.DEFAULT_SIZE, 600, Short.MAX_VALUE)
+					.addComponent(scrollPaneComandos, GroupLayout.DEFAULT_SIZE, 162, Short.MAX_VALUE)
 					.addContainerGap())
 		);
 		panel_JTextArea_Comandos.setLayout(gl_panel_JTextArea_Comandos);
@@ -2168,23 +2168,23 @@ public class Visualizador extends JFrame implements ServletContextListener {
 				.addGroup(gl_panel_SCO.createSequentialGroup()
 					.addGap(20)
 					.addGroup(gl_panel_SCO.createParallelGroup(Alignment.LEADING)
-						.addComponent(panel_BotonesComandos, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addGroup(gl_panel_SCO.createSequentialGroup()
-							.addComponent(panel_2_1_1_1, GroupLayout.PREFERRED_SIZE, 537, GroupLayout.PREFERRED_SIZE)
-							.addGap(18)
-							.addComponent(panel_JTextArea_Comandos, GroupLayout.PREFERRED_SIZE, 977, GroupLayout.PREFERRED_SIZE)))
+						.addComponent(panel_2_1_1_1, GroupLayout.PREFERRED_SIZE, 537, GroupLayout.PREFERRED_SIZE)
+						.addComponent(panel_BotonesComandos, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addGap(18)
+					.addComponent(panel_JTextArea_Comandos, GroupLayout.PREFERRED_SIZE, 977, GroupLayout.PREFERRED_SIZE)
 					.addContainerGap())
 		);
 		gl_panel_SCO.setVerticalGroup(
-			gl_panel_SCO.createParallelGroup(Alignment.TRAILING)
-				.addGroup(Alignment.LEADING, gl_panel_SCO.createSequentialGroup()
+			gl_panel_SCO.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_panel_SCO.createSequentialGroup()
 					.addContainerGap()
-					.addGroup(gl_panel_SCO.createParallelGroup(Alignment.TRAILING, false)
-						.addComponent(panel_JTextArea_Comandos, Alignment.LEADING, 0, 0, Short.MAX_VALUE)
-						.addComponent(panel_2_1_1_1, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 186, Short.MAX_VALUE))
-					.addGap(32)
-					.addComponent(panel_BotonesComandos, GroupLayout.PREFERRED_SIZE, 74, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(416, Short.MAX_VALUE))
+					.addGroup(gl_panel_SCO.createParallelGroup(Alignment.LEADING)
+						.addComponent(panel_JTextArea_Comandos, GroupLayout.DEFAULT_SIZE, 696, Short.MAX_VALUE)
+						.addGroup(gl_panel_SCO.createSequentialGroup()
+							.addComponent(panel_2_1_1_1, GroupLayout.PREFERRED_SIZE, 186, GroupLayout.PREFERRED_SIZE)
+							.addGap(32)
+							.addComponent(panel_BotonesComandos, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+					.addContainerGap())
 		);
 		panel_SCO.setLayout(gl_panel_SCO);
 		
